@@ -34,6 +34,21 @@ func GetEvents(appstate *AppState) []Event {
 				appstate.Job.Set("Sales clerk")
 				appstate.Messages.Prepend("You got promoted to Sales clerk!")
 				return true
-			}),
+			},
+		),
+		NewEvent(
+			"Promotion to Manager",
+			func() bool {
+				workXP, err := appstate.WorkXP.Get()
+				if err != nil {
+					return false
+				}
+				return workXP == 1000
+			}, func() bool {
+				appstate.Job.Set("Manager")
+				appstate.Messages.Prepend("You got promoted to Manager!")
+				return true
+			},
+		),
 	}
 }
