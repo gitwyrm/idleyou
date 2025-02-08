@@ -135,21 +135,23 @@ func (state *AppState) gameTick() {
 	}
 
 	// Energy
-	energy, err := state.Energy.Get()
-	if err != nil {
-		fmt.Println("Error getting energy:", err)
-		return
-	}
-	if energy > 0 {
-		state.Energy.Set(energy - 1)
-	} else {
-		eventName, err := state.EventName.Get()
+	if working {
+		energy, err := state.Energy.Get()
 		if err != nil {
-			fmt.Println("Error getting event name:", err)
+			fmt.Println("Error getting energy:", err)
 			return
 		}
-		if eventName == "" {
-			NewEventHandler(state).Sleep()
+		if energy > 0 {
+			state.Energy.Set(energy - 1)
+		} else {
+			eventName, err := state.EventName.Get()
+			if err != nil {
+				fmt.Println("Error getting event name:", err)
+				return
+			}
+			if eventName == "" {
+				NewEventHandler(state).Sleep()
+			}
 		}
 	}
 

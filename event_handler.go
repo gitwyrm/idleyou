@@ -10,7 +10,7 @@ type EventHandler struct {
 	state *AppState
 }
 
-func (e *EventHandler) newHandlerWith(eventName string, doneMessage string, eventMax int, callback func()) {
+func (e *EventHandler) newHandlerWith(eventName string, doneMessage string, eventMax int, onDone func(), onTick func()) {
 	currentEventName, err := e.state.EventName.Get()
 	if err != nil {
 		fmt.Println("Error getting event name:", err)
@@ -32,8 +32,13 @@ func (e *EventHandler) newHandlerWith(eventName string, doneMessage string, even
 			fmt.Println("Error getting event value:", err)
 			return
 		}
+		if onTick != nil {
+			onTick()
+		}
 		if eventValue >= eventMax {
-			callback()
+			if onDone != nil {
+				onDone()
+			}
 			e.state.EventValue.RemoveListener(listener)
 			e.state.EventName.Set("")
 			e.state.Working.Set(true)
@@ -48,13 +53,21 @@ func (e *EventHandler) Sleep() {
 		"Sleeping",
 		"You slept well and feel refreshed.",
 		100,
+		nil,
 		func() {
-			eneryMax, err := e.state.EnergyMax.Get()
+			energy, err := e.state.Energy.Get()
+			if err != nil {
+				fmt.Println("Error getting energy:", err)
+				return
+			}
+			energyMax, err := e.state.EnergyMax.Get()
 			if err != nil {
 				fmt.Println("Error getting energy max:", err)
 				return
 			}
-			e.state.Energy.Set(eneryMax)
+			if energy < energyMax {
+				e.state.Energy.Set(energy + 1)
+			}
 		},
 	)
 }
@@ -76,6 +89,7 @@ func (e *EventHandler) WatchTV() {
 				e.state.Mood.Set(100)
 			}
 		},
+		nil,
 	)
 }
 
