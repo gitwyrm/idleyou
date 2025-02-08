@@ -12,6 +12,8 @@ type AppState struct {
 	Work       binding.Int
 	Food       binding.Int
 	FoodMax    binding.Int
+	Energy     binding.Int
+	EnergyMax  binding.Int
 	Mood       binding.Int
 	Money      binding.Int
 	Job        binding.String
@@ -23,12 +25,14 @@ type AppState struct {
 	Events     []Event
 }
 
-func NewAppState(workValue, foodValue, moodValue, moneyValue int, job string, working bool, eventName string, eventValue int, eventMax int) *AppState {
+func NewAppState(workValue, foodValue, energyValue, energyMaxValue, moodValue, moneyValue int, job string, working bool, eventName string, eventValue int, eventMax int) *AppState {
 	var appstate AppState
 	appstate = AppState{
 		Work:       binding.NewInt(),
 		Food:       binding.NewInt(),
 		FoodMax:    binding.NewInt(),
+		Energy:     binding.NewInt(),
+		EnergyMax:  binding.NewInt(),
 		Mood:       binding.NewInt(),
 		Money:      binding.NewInt(),
 		Job:        binding.NewString(),
@@ -42,6 +46,8 @@ func NewAppState(workValue, foodValue, moodValue, moneyValue int, job string, wo
 	appstate.Work.Set(workValue)
 	appstate.Food.Set(foodValue)
 	appstate.FoodMax.Set(foodValue)
+	appstate.Energy.Set(energyValue)
+	appstate.EnergyMax.Set(energyMaxValue)
 	appstate.Mood.Set(moodValue)
 	appstate.Money.Set(moneyValue)
 	appstate.Job.Set(job)
@@ -56,6 +62,8 @@ func NewAppStateWithDefaults() *AppState {
 	return NewAppState(
 		0,        // workValue
 		100,      // foodValue
+		100,      // energyValue
+		100,      // energyMaxValue
 		50,       // moodValue
 		100,      // moneyValue
 		"Intern", // job
@@ -74,6 +82,8 @@ func fromJSON(jsonData string) *AppState {
 	}
 	workValue := data["work"]
 	foodValue := data["food"]
+	energyValue := data["energy"]
+	energyMaxValue := data["energyMax"]
 	moodValue := data["mood"]
 	moneyValue := data["money"]
 	job := data["job"]
@@ -85,6 +95,8 @@ func fromJSON(jsonData string) *AppState {
 	return NewAppState(
 		workValue.(int),
 		foodValue.(int),
+		energyValue.(int),
+		energyMaxValue.(int),
 		moodValue.(int),
 		moneyValue.(int),
 		job.(string),
@@ -119,6 +131,25 @@ func (state *AppState) gameTick() {
 			}
 			state.Money.Set(money + state.GetSalary())
 			state.Messages.Prepend(fmt.Sprintf("You were paid $%v for your work!", state.GetSalary()))
+		}
+	}
+
+	// Energy
+	energy, err := state.Energy.Get()
+	if err != nil {
+		fmt.Println("Error getting energy:", err)
+		return
+	}
+	if energy > 0 {
+		state.Energy.Set(energy - 1)
+	} else {
+		eventName, err := state.EventName.Get()
+		if err != nil {
+			fmt.Println("Error getting event name:", err)
+			return
+		}
+		if eventName == "" {
+			NewEventHandler(state).Sleep()
 		}
 	}
 

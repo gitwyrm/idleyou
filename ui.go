@@ -40,6 +40,7 @@ func setupUI(appstate *AppState) *fyne.Container {
 	progressContainer := container.New(
 		layout.NewFormLayout(),
 		widget.NewLabel("Work"), progressBarForBinding(appstate.Work, nil),
+		widget.NewLabel("Energy"), progressBarForBinding(appstate.Energy, appstate.EnergyMax),
 		widget.NewLabel("Food"), progressBarForBinding(appstate.Food, appstate.FoodMax),
 		widget.NewLabel("Mood"), progressBarForBinding(appstate.Mood, nil),
 	)
@@ -95,45 +96,7 @@ func setupUI(appstate *AppState) *fyne.Container {
 			}
 		}),
 		widget.NewButton("Watch TV", func() {
-			eventName, err := appstate.EventName.Get()
-			if err != nil {
-				fmt.Println("Error getting event name:", err)
-				return
-			}
-			if eventName != "" {
-				// Already in an event, so just return
-				return
-			}
-
-			appstate.Working.Set(false)
-			appstate.EventName.Set("Watching TV")
-			appstate.EventValue.Set(0)
-			appstate.EventMax.Set(100)
-			var listener binding.DataListener
-			listener = binding.NewDataListener(func() {
-				eventValue, err := appstate.EventValue.Get()
-				if err != nil {
-					fmt.Println("Error getting event value:", err)
-					return
-				}
-				if eventValue >= 100 {
-					mood, err := appstate.Mood.Get()
-					if err != nil {
-						fmt.Println("Error getting mood:", err)
-						return
-					}
-					appstate.EventName.Set("")
-					if (mood + 5) <= 100 {
-						appstate.Mood.Set(mood + 5)
-					} else {
-						appstate.Mood.Set(100)
-					}
-					appstate.EventValue.RemoveListener(listener)
-					appstate.Working.Set(true)
-					appstate.Messages.Prepend("You watched TV and feel a little happier, mood increased by 5.")
-				}
-			})
-			appstate.EventValue.AddListener(listener)
+			NewEventHandler(appstate).WatchTV()
 		}))
 
 	messageList := widget.NewListWithData(appstate.Messages,
