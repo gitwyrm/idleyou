@@ -10,6 +10,7 @@ import (
 
 type AppState struct {
 	Work       binding.Int
+	WorkXP     binding.Int
 	Food       binding.Int
 	FoodMax    binding.Int
 	Energy     binding.Int
@@ -25,10 +26,11 @@ type AppState struct {
 	Events     []Event
 }
 
-func NewAppState(workValue, foodValue, energyValue, energyMaxValue, moodValue, moneyValue int, job string, working bool, eventName string, eventValue int, eventMax int) *AppState {
+func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, moneyValue int, job string, working bool, eventName string, eventValue int, eventMax int) *AppState {
 	var appstate AppState
 	appstate = AppState{
 		Work:       binding.NewInt(),
+		WorkXP:     binding.NewInt(),
 		Food:       binding.NewInt(),
 		FoodMax:    binding.NewInt(),
 		Energy:     binding.NewInt(),
@@ -44,6 +46,7 @@ func NewAppState(workValue, foodValue, energyValue, energyMaxValue, moodValue, m
 		Events:     GetEvents(&appstate),
 	}
 	appstate.Work.Set(workValue)
+	appstate.WorkXP.Set(workXP)
 	appstate.Food.Set(foodValue)
 	appstate.FoodMax.Set(foodValue)
 	appstate.Energy.Set(energyValue)
@@ -61,6 +64,7 @@ func NewAppState(workValue, foodValue, energyValue, energyMaxValue, moodValue, m
 func NewAppStateWithDefaults() *AppState {
 	return NewAppState(
 		0,        // workValue
+		0,        // workXP
 		100,      // foodValue
 		100,      // energyValue
 		100,      // energyMaxValue
@@ -81,6 +85,7 @@ func fromJSON(jsonData string) *AppState {
 		return nil
 	}
 	workValue := data["work"]
+	workXP := data["workXP"]
 	foodValue := data["food"]
 	energyValue := data["energy"]
 	energyMaxValue := data["energyMax"]
@@ -94,6 +99,7 @@ func fromJSON(jsonData string) *AppState {
 
 	return NewAppState(
 		workValue.(int),
+		workXP.(int),
 		foodValue.(int),
 		energyValue.(int),
 		energyMaxValue.(int),
@@ -114,6 +120,11 @@ func (state *AppState) gameTick() {
 		fmt.Println("Error getting work:", err)
 		return
 	}
+	workXP, err := state.WorkXP.Get()
+	if err != nil {
+		fmt.Println("Error getting work XP:", err)
+		return
+	}
 	working, err := state.Working.Get()
 	if err != nil {
 		fmt.Println("Error getting working:", err)
@@ -128,6 +139,7 @@ func (state *AppState) gameTick() {
 	if working {
 		if v < 100 {
 			state.Work.Set(v + 1)
+			state.WorkXP.Set(workXP + 1)
 		} else {
 			state.Work.Set(0)
 			money, err := state.Money.Get()
@@ -207,7 +219,19 @@ func (state *AppState) toJSON() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	workXP, err := state.WorkXP.Get()
+	if err != nil {
+		return "", err
+	}
 	foodValue, err := state.Food.Get()
+	if err != nil {
+		return "", err
+	}
+	energyValue, err := state.Energy.Get()
+	if err != nil {
+		return "", err
+	}
+	energyMax, err := state.EnergyMax.Get()
 	if err != nil {
 		return "", err
 	}
@@ -220,6 +244,10 @@ func (state *AppState) toJSON() (string, error) {
 		return "", err
 	}
 	job, err := state.Job.Get()
+	if err != nil {
+		return "", err
+	}
+	working, err := state.Working.Get()
 	if err != nil {
 		return "", err
 	}
@@ -237,10 +265,14 @@ func (state *AppState) toJSON() (string, error) {
 	}
 	jsonData, err := json.Marshal(map[string]any{
 		"work":       workValue,
+		"workXP":     workXP,
 		"food":       foodValue,
+		"energy":     energyValue,
+		"energyMax":  energyMax,
 		"mood":       moodValue,
 		"money":      moneyValue,
 		"job":        job,
+		"working":    working,
 		"eventName":  eventName,
 		"eventValue": eventValue,
 		"eventMax":   eventMax,
