@@ -107,8 +107,19 @@ func setupUI(appstate *AppState) *fyne.Container {
 			o.(*widget.Label).Bind(i.(binding.String))
 		})
 
+	playerInfo := container.New(
+		layout.NewFormLayout(),
+		widget.NewLabel("Job:"), widget.NewLabelWithData(appstate.Job),
+		widget.NewLabel("Job experience:"), widget.NewLabelWithData(binding.IntToString(appstate.WorkXP)),
+	)
+
+	sidePanel := container.New(layout.NewVBoxLayout(), playerInfo, eventContainer)
+
 	// Buttons and progress bars
-	column := container.New(layout.NewVBoxLayout(), progressContainer, moneyRow, eventContainer, buttonRow, saveButton)
+	column := container.New(layout.NewVBoxLayout(), progressContainer, moneyRow, buttonRow, saveButton)
+
+	content := container.New(layout.NewGridLayout(2), column, sidePanel)
+
 	// Column with buttons and progress at the top, messages at the center so they fill the space
-	return container.NewBorder(column, nil, nil, nil, messageList)
+	return container.NewBorder(content, nil, nil, nil, messageList)
 }
