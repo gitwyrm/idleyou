@@ -145,7 +145,7 @@ func setupUI(appstate *AppState) *fyne.Container {
 		})
 
 	// Buttons and progress bars
-	column := container.New(layout.NewVBoxLayout(), progressContainer, eventContainer, moneyRow, buttonRow, saveButton)
+	column := container.New(layout.NewVBoxLayout(), progressContainer, moneyRow, eventContainer, buttonRow, saveButton)
 	// Column with buttons and progress at the top, messages at the center so they fill the space
 	return container.NewBorder(column, nil, nil, nil, messageList)
 }
