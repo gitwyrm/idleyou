@@ -15,11 +15,12 @@ type AppState struct {
 	Mood     binding.Int
 	Money    binding.Int
 	Job      binding.String
+	Working  binding.Bool
 	Messages binding.StringList
 	Events   []Event
 }
 
-func NewAppState(workValue, foodValue, moodValue, moneyValue int, job string) *AppState {
+func NewAppState(workValue, foodValue, moodValue, moneyValue int, job string, working bool) *AppState {
 	var appstate AppState
 	appstate = AppState{
 		Work:     binding.NewInt(),
@@ -28,6 +29,7 @@ func NewAppState(workValue, foodValue, moodValue, moneyValue int, job string) *A
 		Mood:     binding.NewInt(),
 		Money:    binding.NewInt(),
 		Job:      binding.NewString(),
+		Working:  binding.NewBool(),
 		Messages: binding.NewStringList(),
 		Events:   GetEvents(&appstate),
 	}
@@ -37,11 +39,12 @@ func NewAppState(workValue, foodValue, moodValue, moneyValue int, job string) *A
 	appstate.Mood.Set(moodValue)
 	appstate.Money.Set(moneyValue)
 	appstate.Job.Set(job)
+	appstate.Working.Set(working)
 	return &appstate
 }
 
 func NewAppStateWithDefaults() *AppState {
-	return NewAppState(0, 100, 50, 100, "Intern")
+	return NewAppState(0, 100, 50, 100, "Intern", true)
 }
 
 func fromJSON(jsonData string) *AppState {
@@ -79,17 +82,24 @@ func (state *AppState) gameTick() {
 		fmt.Println("Error getting work:", err)
 		return
 	}
-	if v < 100 {
-		state.Work.Set(v + 1)
-	} else {
-		state.Work.Set(0)
-		money, err := state.Money.Get()
-		if err != nil {
-			fmt.Println("Error getting money:", err)
-			return
+	working, err := state.Working.Get()
+	if err != nil {
+		fmt.Println("Error getting working:", err)
+		return
+	}
+	if working {
+		if v < 100 {
+			state.Work.Set(v + 1)
+		} else {
+			state.Work.Set(0)
+			money, err := state.Money.Get()
+			if err != nil {
+				fmt.Println("Error getting money:", err)
+				return
+			}
+			state.Money.Set(money + state.GetSalary())
+			state.Messages.Prepend(fmt.Sprintf("You were paid $%v for your work!", state.GetSalary()))
 		}
-		state.Money.Set(money + state.GetSalary())
-		state.Messages.Prepend(fmt.Sprintf("You were paid $%v for your work!", state.GetSalary()))
 	}
 
 	// Food

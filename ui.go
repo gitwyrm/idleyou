@@ -55,24 +55,34 @@ func setupUI(appstate *AppState) *fyne.Container {
 	})
 
 	moneyRow := container.New(layout.NewHBoxLayout(), widget.NewLabel("Money:"), widget.NewLabelWithData(binding.IntToString(appstate.Money)))
-	buttonRow := container.New(layout.NewHBoxLayout(), widget.NewButton("Buy food ($100)", func() {
-		money, err := appstate.Money.Get()
-		if err != nil {
-			fmt.Println("Error getting money:", err)
-			return
-		}
-		food, err := appstate.Food.Get()
-		if err != nil {
-			fmt.Println("Error getting food:", err)
-			return
-		}
-		if money >= 100 {
-			appstate.Money.Set(money - 100)
-			appstate.Food.Set(food + 100)
-			appstate.FoodMax.Set(food + 100)
-			appstate.Messages.Prepend("You bought food!")
-		}
-	}))
+	buttonRow := container.New(
+		layout.NewHBoxLayout(),
+		widget.NewButton("Buy food ($100)", func() {
+			money, err := appstate.Money.Get()
+			if err != nil {
+				fmt.Println("Error getting money:", err)
+				return
+			}
+			food, err := appstate.Food.Get()
+			if err != nil {
+				fmt.Println("Error getting food:", err)
+				return
+			}
+			if money >= 100 {
+				appstate.Money.Set(money - 100)
+				appstate.Food.Set(food + 100)
+				appstate.FoodMax.Set(food + 100)
+				appstate.Messages.Prepend("You bought food!")
+			}
+		}),
+		widget.NewButton("Toggle Work", func() {
+			working, err := appstate.Working.Get()
+			if err != nil {
+				fmt.Println("Error getting working state:", err)
+				return
+			}
+			appstate.Working.Set(!working)
+		}))
 
 	messageList := widget.NewListWithData(appstate.Messages,
 		func() fyne.CanvasObject {
