@@ -10,7 +10,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func progressBarForBinding(b binding.Int) *widget.ProgressBar {
+func progressBarForBinding(b binding.Int, max binding.Int) *widget.ProgressBar {
 	progress := widget.NewProgressBar()
 	b.AddListener(binding.NewDataListener(func() {
 		v, err := b.Get()
@@ -18,18 +18,30 @@ func progressBarForBinding(b binding.Int) *widget.ProgressBar {
 			fmt.Println("Error getting work:", err)
 			return
 		}
-		progressFloat := float64(v) / 100.0
+
+		var progressFloat float64
+		if max != nil {
+			maxValue, err := max.Get()
+			if err != nil {
+				fmt.Println("Error getting max value:", err)
+				return
+			}
+			progressFloat = float64(v) / float64(maxValue)
+		} else {
+			progressFloat = float64(v) / 100.0
+		}
 		progress.SetValue(progressFloat)
 	}))
 	return progress
 }
 
 func setupUI(appstate *AppState) *fyne.Container {
+
 	progressContainer := container.New(
 		layout.NewFormLayout(),
-		widget.NewLabel("Work"), progressBarForBinding(appstate.Work),
-		widget.NewLabel("Food"), progressBarForBinding(appstate.Food),
-		widget.NewLabel("Mood"), progressBarForBinding(appstate.Mood),
+		widget.NewLabel("Work"), progressBarForBinding(appstate.Work, nil),
+		widget.NewLabel("Food"), progressBarForBinding(appstate.Food, appstate.FoodMax),
+		widget.NewLabel("Mood"), progressBarForBinding(appstate.Mood, nil),
 	)
 
 	// Add a button to save state
@@ -49,9 +61,15 @@ func setupUI(appstate *AppState) *fyne.Container {
 			fmt.Println("Error getting money:", err)
 			return
 		}
+		food, err := appstate.Food.Get()
+		if err != nil {
+			fmt.Println("Error getting food:", err)
+			return
+		}
 		if money >= 100 {
 			appstate.Money.Set(money - 100)
-			appstate.Food.Set(100)
+			appstate.Food.Set(food + 100)
+			appstate.FoodMax.Set(food + 100)
 			appstate.Messages.Prepend("You bought food!")
 		}
 	}))

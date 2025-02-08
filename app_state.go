@@ -11,6 +11,7 @@ import (
 type AppState struct {
 	Work     binding.Int
 	Food     binding.Int
+	FoodMax  binding.Int
 	Mood     binding.Int
 	Money    binding.Int
 	Job      binding.String
@@ -23,6 +24,7 @@ func NewAppState(workValue, foodValue, moodValue, moneyValue int, job string) *A
 	appstate = AppState{
 		Work:     binding.NewInt(),
 		Food:     binding.NewInt(),
+		FoodMax:  binding.NewInt(),
 		Mood:     binding.NewInt(),
 		Money:    binding.NewInt(),
 		Job:      binding.NewString(),
@@ -31,6 +33,7 @@ func NewAppState(workValue, foodValue, moodValue, moneyValue int, job string) *A
 	}
 	appstate.Work.Set(workValue)
 	appstate.Food.Set(foodValue)
+	appstate.FoodMax.Set(foodValue)
 	appstate.Mood.Set(moodValue)
 	appstate.Money.Set(moneyValue)
 	appstate.Job.Set(job)
@@ -55,6 +58,7 @@ func fromJSON(jsonData string) *AppState {
 	appstate = AppState{
 		Work:     binding.NewInt(),
 		Food:     binding.NewInt(),
+		FoodMax:  binding.NewInt(),
 		Mood:     binding.NewInt(),
 		Money:    binding.NewInt(),
 		Messages: binding.NewStringList(),
@@ -62,6 +66,7 @@ func fromJSON(jsonData string) *AppState {
 	}
 	appstate.Work.Set(workValue)
 	appstate.Food.Set(foodValue)
+	appstate.FoodMax.Set(foodValue)
 	appstate.Mood.Set(moodValue)
 	appstate.Money.Set(moneyValue)
 	return &appstate
