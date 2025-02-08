@@ -94,15 +94,17 @@ func setupUI(appstate *AppState) *fyne.Container {
 				appstate.Messages.Prepend("You bought food!")
 			}
 		}),
-		widget.NewButton("Toggle Work", func() {
-			working, err := appstate.Working.Get()
+		widget.NewButton("Watch TV", func() {
+			eventName, err := appstate.EventName.Get()
 			if err != nil {
-				fmt.Println("Error getting working state:", err)
+				fmt.Println("Error getting event name:", err)
 				return
 			}
-			appstate.Working.Set(!working)
-		}),
-		widget.NewButton("Watch TV (mood + 5)", func() {
+			if eventName != "" {
+				// Already in an event, so just return
+				return
+			}
+
 			appstate.Working.Set(false)
 			appstate.EventName.Set("Watching TV")
 			appstate.EventValue.Set(0)
@@ -121,9 +123,14 @@ func setupUI(appstate *AppState) *fyne.Container {
 						return
 					}
 					appstate.EventName.Set("")
-					appstate.Mood.Set(mood + 5)
+					if (mood + 5) <= 100 {
+						appstate.Mood.Set(mood + 5)
+					} else {
+						appstate.Mood.Set(100)
+					}
 					appstate.EventValue.RemoveListener(listener)
 					appstate.Working.Set(true)
+					appstate.Messages.Prepend("You watched TV and feel a little happier, mood increased by 5.")
 				}
 			})
 			appstate.EventValue.AddListener(listener)
