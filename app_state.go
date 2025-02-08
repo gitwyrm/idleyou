@@ -164,8 +164,15 @@ func (state *AppState) gameTick() {
 	if v > 0 {
 		state.Food.Set(v - 1)
 	} else {
-		fmt.Println("Game Over")
-		os.Exit(0)
+		energy, err := state.Energy.Get()
+		if err != nil {
+			fmt.Println("Error getting energy:", err)
+			return
+		}
+		if energy <= 0 {
+			fmt.Println("Game Over")
+			os.Exit(0)
+		}
 	}
 
 	// Handle events
