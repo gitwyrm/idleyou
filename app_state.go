@@ -119,6 +119,12 @@ func (state *AppState) gameTick() {
 		fmt.Println("Error getting working:", err)
 		return
 	}
+	eventName, err := state.EventName.Get()
+	if err != nil {
+		fmt.Println("Error getting event name:", err)
+		return
+	}
+
 	if working {
 		if v < 100 {
 			state.Work.Set(v + 1)
@@ -162,14 +168,11 @@ func (state *AppState) gameTick() {
 		return
 	}
 	if v > 0 {
-		state.Food.Set(v - 1)
-	} else {
-		energy, err := state.Energy.Get()
-		if err != nil {
-			fmt.Println("Error getting energy:", err)
-			return
+		if eventName != "Sleeping" {
+			state.Food.Set(v - 1)
 		}
-		if energy <= 0 {
+	} else {
+		if eventName != "Sleeping" {
 			fmt.Println("Game Over")
 			os.Exit(0)
 		}
@@ -189,11 +192,6 @@ func (state *AppState) gameTick() {
 	}
 
 	// Handle current event
-	eventName, err := state.EventName.Get()
-	if err != nil {
-		fmt.Println("Error getting event name:", err)
-		return
-	}
 	if eventName != "" {
 		eventValue, err := state.EventValue.Get()
 		if err != nil {
