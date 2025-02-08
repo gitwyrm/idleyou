@@ -44,6 +44,25 @@ func setupUI(appstate *AppState) *fyne.Container {
 		widget.NewLabel("Mood"), progressBarForBinding(appstate.Mood, nil),
 	)
 
+	eventContainer := container.New(
+		layout.NewVBoxLayout(),
+		widget.NewLabelWithData(appstate.EventName),
+		progressBarForBinding(appstate.EventValue, appstate.EventMax),
+	)
+
+	appstate.EventName.AddListener(binding.NewDataListener(func() {
+		eventName, err := appstate.EventName.Get()
+		if err != nil {
+			fmt.Println("Error getting event name:", err)
+			return
+		}
+		if eventName == "" {
+			eventContainer.Hide()
+		} else {
+			eventContainer.Show()
+		}
+	}))
+
 	// Add a button to save state
 	saveButton := widget.NewButton("Save", func() {
 		jsonData, err := appstate.toJSON()
@@ -82,6 +101,32 @@ func setupUI(appstate *AppState) *fyne.Container {
 				return
 			}
 			appstate.Working.Set(!working)
+		}),
+		widget.NewButton("Watch TV (mood + 5)", func() {
+			appstate.Working.Set(false)
+			appstate.EventName.Set("Watching TV")
+			appstate.EventValue.Set(0)
+			appstate.EventMax.Set(100)
+			var listener binding.DataListener
+			listener = binding.NewDataListener(func() {
+				eventValue, err := appstate.EventValue.Get()
+				if err != nil {
+					fmt.Println("Error getting event value:", err)
+					return
+				}
+				if eventValue >= 100 {
+					mood, err := appstate.Mood.Get()
+					if err != nil {
+						fmt.Println("Error getting mood:", err)
+						return
+					}
+					appstate.EventName.Set("")
+					appstate.Mood.Set(mood + 5)
+					appstate.EventValue.RemoveListener(listener)
+					appstate.Working.Set(true)
+				}
+			})
+			appstate.EventValue.AddListener(listener)
 		}))
 
 	messageList := widget.NewListWithData(appstate.Messages,
@@ -93,7 +138,7 @@ func setupUI(appstate *AppState) *fyne.Container {
 		})
 
 	// Buttons and progress bars
-	column := container.New(layout.NewVBoxLayout(), progressContainer, moneyRow, buttonRow, saveButton)
+	column := container.New(layout.NewVBoxLayout(), progressContainer, eventContainer, moneyRow, buttonRow, saveButton)
 	// Column with buttons and progress at the top, messages at the center so they fill the space
 	return container.NewBorder(column, nil, nil, nil, messageList)
 }

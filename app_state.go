@@ -9,29 +9,35 @@ import (
 )
 
 type AppState struct {
-	Work     binding.Int
-	Food     binding.Int
-	FoodMax  binding.Int
-	Mood     binding.Int
-	Money    binding.Int
-	Job      binding.String
-	Working  binding.Bool
-	Messages binding.StringList
-	Events   []Event
+	Work       binding.Int
+	Food       binding.Int
+	FoodMax    binding.Int
+	Mood       binding.Int
+	Money      binding.Int
+	Job        binding.String
+	Working    binding.Bool
+	EventName  binding.String
+	EventValue binding.Int
+	EventMax   binding.Int
+	Messages   binding.StringList
+	Events     []Event
 }
 
-func NewAppState(workValue, foodValue, moodValue, moneyValue int, job string, working bool) *AppState {
+func NewAppState(workValue, foodValue, moodValue, moneyValue int, job string, working bool, eventName string, eventValue int, eventMax int) *AppState {
 	var appstate AppState
 	appstate = AppState{
-		Work:     binding.NewInt(),
-		Food:     binding.NewInt(),
-		FoodMax:  binding.NewInt(),
-		Mood:     binding.NewInt(),
-		Money:    binding.NewInt(),
-		Job:      binding.NewString(),
-		Working:  binding.NewBool(),
-		Messages: binding.NewStringList(),
-		Events:   GetEvents(&appstate),
+		Work:       binding.NewInt(),
+		Food:       binding.NewInt(),
+		FoodMax:    binding.NewInt(),
+		Mood:       binding.NewInt(),
+		Money:      binding.NewInt(),
+		Job:        binding.NewString(),
+		Working:    binding.NewBool(),
+		EventName:  binding.NewString(),
+		EventValue: binding.NewInt(),
+		EventMax:   binding.NewInt(),
+		Messages:   binding.NewStringList(),
+		Events:     GetEvents(&appstate),
 	}
 	appstate.Work.Set(workValue)
 	appstate.Food.Set(foodValue)
@@ -40,15 +46,28 @@ func NewAppState(workValue, foodValue, moodValue, moneyValue int, job string, wo
 	appstate.Money.Set(moneyValue)
 	appstate.Job.Set(job)
 	appstate.Working.Set(working)
+	appstate.EventName.Set(eventName)
+	appstate.EventValue.Set(eventValue)
+	appstate.EventMax.Set(eventMax)
 	return &appstate
 }
 
 func NewAppStateWithDefaults() *AppState {
-	return NewAppState(0, 100, 50, 100, "Intern", true)
+	return NewAppState(
+		0,        // workValue
+		100,      // foodValue
+		50,       // moodValue
+		100,      // moneyValue
+		"Intern", // job
+		true,     // working
+		"",       // eventName
+		0,        // eventValue
+		100,      // eventMax
+	)
 }
 
 func fromJSON(jsonData string) *AppState {
-	var data map[string]int
+	var data map[string]any
 	err := json.Unmarshal([]byte(jsonData), &data)
 	if err != nil {
 		return nil
@@ -57,22 +76,23 @@ func fromJSON(jsonData string) *AppState {
 	foodValue := data["food"]
 	moodValue := data["mood"]
 	moneyValue := data["money"]
-	var appstate AppState
-	appstate = AppState{
-		Work:     binding.NewInt(),
-		Food:     binding.NewInt(),
-		FoodMax:  binding.NewInt(),
-		Mood:     binding.NewInt(),
-		Money:    binding.NewInt(),
-		Messages: binding.NewStringList(),
-		Events:   GetEvents(&appstate),
-	}
-	appstate.Work.Set(workValue)
-	appstate.Food.Set(foodValue)
-	appstate.FoodMax.Set(foodValue)
-	appstate.Mood.Set(moodValue)
-	appstate.Money.Set(moneyValue)
-	return &appstate
+	job := data["job"]
+	working := data["working"]
+	eventName := data["eventName"]
+	eventValue := data["eventValue"]
+	eventMax := data["eventMax"]
+
+	return NewAppState(
+		workValue.(int),
+		foodValue.(int),
+		moodValue.(int),
+		moneyValue.(int),
+		job.(string),
+		working.(bool),
+		eventName.(string),
+		eventValue.(int),
+		eventMax.(int),
+	)
 }
 
 func (state *AppState) gameTick() {
@@ -127,6 +147,21 @@ func (state *AppState) gameTick() {
 			state.Events[i].Done = true
 		}
 	}
+
+	// Handle current event
+	eventName, err := state.EventName.Get()
+	if err != nil {
+		fmt.Println("Error getting event name:", err)
+		return
+	}
+	if eventName != "" {
+		eventValue, err := state.EventValue.Get()
+		if err != nil {
+			fmt.Println("Error getting event value:", err)
+			return
+		}
+		state.EventValue.Set(eventValue + 1)
+	}
 }
 
 func (state *AppState) toJSON() (string, error) {
@@ -138,7 +173,40 @@ func (state *AppState) toJSON() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	jsonData, err := json.Marshal(map[string]int{"work": workValue, "food": foodValue})
+	moodValue, err := state.Mood.Get()
+	if err != nil {
+		return "", err
+	}
+	moneyValue, err := state.Money.Get()
+	if err != nil {
+		return "", err
+	}
+	job, err := state.Job.Get()
+	if err != nil {
+		return "", err
+	}
+	eventName, err := state.EventName.Get()
+	if err != nil {
+		return "", err
+	}
+	eventValue, err := state.EventValue.Get()
+	if err != nil {
+		return "", err
+	}
+	eventMax, err := state.EventMax.Get()
+	if err != nil {
+		return "", err
+	}
+	jsonData, err := json.Marshal(map[string]any{
+		"work":       workValue,
+		"food":       foodValue,
+		"mood":       moodValue,
+		"money":      moneyValue,
+		"job":        job,
+		"eventName":  eventName,
+		"eventValue": eventValue,
+		"eventMax":   eventMax,
+	})
 	if err != nil {
 		return "", err
 	}
