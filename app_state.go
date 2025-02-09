@@ -160,7 +160,20 @@ func (state *AppState) gameTick() {
 			return
 		}
 		if energy > 0 {
-			state.Energy.Set(energy - 1)
+			mood, err := state.Mood.Get()
+			if err != nil {
+				fmt.Println("Error getting mood:", err)
+				return
+			}
+			if mood < 50 {
+				if energy < 2 {
+					state.Energy.Set(0)
+				} else {
+					state.Energy.Set(energy - 2)
+				}
+			} else {
+				state.Energy.Set(energy - 1)
+			}
 		} else {
 			eventName, err := state.EventName.Get()
 			if err != nil {
