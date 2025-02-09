@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -104,7 +105,20 @@ func setupUI(appstate *AppState) *fyne.Container {
 			return widget.NewLabel("template")
 		},
 		func(i binding.DataItem, o fyne.CanvasObject) {
-			o.(*widget.Label).Bind(i.(binding.String))
+			text, err := i.(binding.String).Get()
+			if err != nil {
+				fmt.Println("Error getting message:", err)
+				return
+			}
+
+			if strings.HasPrefix(text, "Event: ") {
+				text = strings.TrimPrefix(text, "Event: ")
+				o.(*widget.Label).TextStyle = fyne.TextStyle{Bold: true}
+			} else {
+				o.(*widget.Label).TextStyle = fyne.TextStyle{}
+			}
+
+			o.(*widget.Label).SetText(text)
 		})
 
 	playerInfo := container.New(

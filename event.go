@@ -35,7 +35,7 @@ func GetEvents(appstate *AppState) []Event {
 			},
 			func() bool {
 				appstate.Job.Set("Sales clerk")
-				appstate.Messages.Prepend("You got promoted to Sales clerk!")
+				appstate.Messages.Prepend("Event: You got promoted to Sales clerk!")
 				return true
 			},
 		),
@@ -50,7 +50,7 @@ func GetEvents(appstate *AppState) []Event {
 			},
 			func() bool {
 				appstate.Job.Set("Manager")
-				appstate.Messages.Prepend("You got promoted to Manager!")
+				appstate.Messages.Prepend("Event: You got promoted to Manager!")
 				return true
 			},
 		),
@@ -68,7 +68,7 @@ func GetEvents(appstate *AppState) []Event {
 				return rand.Float64() < 0.01
 			},
 			func() bool {
-				appstate.Messages.Prepend("You were bullied at work and feel a bit worse.")
+				appstate.Messages.Prepend("Event: You were bullied at work and feel a bit worse.")
 				mood, err := appstate.Mood.Get()
 				if err != nil {
 					return false
