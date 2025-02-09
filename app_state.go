@@ -18,6 +18,7 @@ type AppState struct {
 	Mood       binding.Int
 	Money      binding.Int
 	Charisma   binding.Int
+	Fitness    binding.Int
 	Job        binding.String
 	Working    binding.Bool
 	EventName  binding.String
@@ -27,7 +28,7 @@ type AppState struct {
 	Events     []Event
 }
 
-func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue int, job string, working bool, eventName string, eventValue int, eventMax int) *AppState {
+func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, working bool, eventName string, eventValue int, eventMax int) *AppState {
 	var appstate AppState
 	appstate = AppState{
 		Work:       binding.NewInt(),
@@ -39,6 +40,7 @@ func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, mood
 		Mood:       binding.NewInt(),
 		Money:      binding.NewInt(),
 		Charisma:   binding.NewInt(),
+		Fitness:    binding.NewInt(),
 		Job:        binding.NewString(),
 		Working:    binding.NewBool(),
 		EventName:  binding.NewString(),
@@ -56,6 +58,7 @@ func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, mood
 	appstate.Mood.Set(moodValue)
 	appstate.Money.Set(moneyValue)
 	appstate.Charisma.Set(charismaValue)
+	appstate.Fitness.Set(fitnessValue)
 	appstate.Job.Set(job)
 	appstate.Working.Set(working)
 	appstate.EventName.Set(eventName)
@@ -74,6 +77,7 @@ func NewAppStateWithDefaults() *AppState {
 		50,       // moodValue
 		0,        // charismaValue
 		100,      // moneyValue
+		0,        // fitnessValue
 		"Intern", // job
 		true,     // working
 		"",       // eventName
@@ -101,6 +105,7 @@ func fromJSON(jsonData string) *AppState {
 	eventValue := data["eventValue"]
 	eventMax := data["eventMax"]
 	charismaValue := data["charisma"]
+	fitnessValue := data["fitness"]
 
 	return NewAppState(
 		workValue.(int),
@@ -111,6 +116,7 @@ func fromJSON(jsonData string) *AppState {
 		moodValue.(int),
 		moneyValue.(int),
 		charismaValue.(int),
+		fitnessValue.(int),
 		job.(string),
 		working.(bool),
 		eventName.(string),
