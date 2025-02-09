@@ -49,9 +49,9 @@ func setupUI(appstate *AppState) *fyne.Container {
 
 	progressContainer := container.New(
 		layout.NewFormLayout(),
+		widget.NewLabel("Food"), progressBarForBinding(appstate.Food, appstate.FoodMax),
 		widget.NewLabel("Work"), progressBarForBinding(appstate.Work, nil),
 		widget.NewLabel("Energy"), progressBarForBinding(appstate.Energy, appstate.EnergyMax),
-		widget.NewLabel("Food"), progressBarForBinding(appstate.Food, appstate.FoodMax),
 		widget.NewLabel("Mood"), progressBarForBinding(appstate.Mood, nil),
 		widget.NewLabel("Appearance"), progressBarForBinding(appearanceBinding, nil),
 	)
