@@ -75,7 +75,6 @@ func setupUI(appstate *AppState) *fyne.Container {
 		fmt.Println("Saved state:", jsonData)
 	})
 
-	moneyRow := container.New(layout.NewHBoxLayout(), widget.NewLabel("Money:"), widget.NewLabelWithData(binding.IntToString(appstate.Money)))
 	buttonRow := container.New(
 		layout.NewHBoxLayout(),
 		widget.NewButton("Buy food ($100)", func() {
@@ -125,12 +124,13 @@ func setupUI(appstate *AppState) *fyne.Container {
 		layout.NewFormLayout(),
 		widget.NewLabel("Job:"), widget.NewLabelWithData(appstate.Job),
 		widget.NewLabel("Job experience:"), widget.NewLabelWithData(binding.IntToString(appstate.WorkXP)),
+		widget.NewLabel("Money:"), widget.NewLabelWithData(binding.IntToString(appstate.Money)),
 	)
 
 	sidePanel := container.New(layout.NewVBoxLayout(), playerInfo, eventContainer)
 
 	// Buttons and progress bars
-	column := container.New(layout.NewVBoxLayout(), progressContainer, moneyRow, buttonRow, saveButton)
+	column := container.New(layout.NewVBoxLayout(), progressContainer, buttonRow, saveButton)
 
 	content := container.New(layout.NewGridLayout(2), column, sidePanel)
 
