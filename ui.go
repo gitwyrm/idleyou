@@ -106,6 +106,25 @@ func setupUI(appstate *AppState) *fyne.Container {
 				appstate.Messages.Prepend("You bought food!")
 			}
 		}),
+		widget.NewButton("Buy food (Max)", func() {
+			money, err := appstate.Money.Get()
+			if err != nil {
+				fmt.Println("Error getting money:", err)
+				return
+			}
+			food, err := appstate.Food.Get()
+			if err != nil {
+				fmt.Println("Error getting food:", err)
+				return
+			}
+			ableToPurchase := money / 100
+			if ableToPurchase > 0 {
+				appstate.Money.Set(money - ableToPurchase*100)
+				appstate.Food.Set(food + ableToPurchase*100)
+				appstate.FoodMax.Set(food + ableToPurchase*100)
+				appstate.Messages.Prepend(fmt.Sprintf("You bought %v food!", ableToPurchase))
+			}
+		}),
 		widget.NewButton("Watch TV", func() {
 			NewEventHandler(appstate).WatchTV()
 		}))
