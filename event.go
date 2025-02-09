@@ -61,11 +61,18 @@ func GetEvents(appstate *AppState) []Event {
 				if err != nil {
 					return false
 				}
+				mood, err := appstate.Mood.Get()
+				if err != nil {
+					return false
+				}
 				if !working {
 					return false
 				}
-				// 1% chance
-				return rand.Float64() < 0.01
+				if mood <= 0 {
+					return false
+				}
+				// 0.1% chance
+				return rand.Float64() < 0.001
 			},
 			func() bool {
 				appstate.Messages.Prepend("Event: You were bullied at work and feel a bit worse.")
