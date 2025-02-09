@@ -37,6 +37,15 @@ func progressBarForBinding(b binding.Int, max binding.Int) *widget.ProgressBar {
 }
 
 func setupUI(appstate *AppState) *fyne.Container {
+	// Convert appearance fn to binding for progress bar
+	appearanceBinding := binding.NewInt()
+	appearanceListener := binding.NewDataListener(func() {
+		appearance := appstate.GetAppearance()
+		appearanceBinding.Set(appearance)
+	})
+	appstate.Charisma.AddListener(appearanceListener)
+	appstate.Mood.AddListener(appearanceListener)
+	appstate.Fitness.AddListener(appearanceListener)
 
 	progressContainer := container.New(
 		layout.NewFormLayout(),
@@ -44,6 +53,7 @@ func setupUI(appstate *AppState) *fyne.Container {
 		widget.NewLabel("Energy"), progressBarForBinding(appstate.Energy, appstate.EnergyMax),
 		widget.NewLabel("Food"), progressBarForBinding(appstate.Food, appstate.FoodMax),
 		widget.NewLabel("Mood"), progressBarForBinding(appstate.Mood, nil),
+		widget.NewLabel("Appearance"), progressBarForBinding(appearanceBinding, nil),
 	)
 
 	eventContainer := container.New(

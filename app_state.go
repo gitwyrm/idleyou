@@ -308,6 +308,22 @@ func (state *AppState) toJSON() (string, error) {
 	return string(jsonData), nil
 }
 
+func (state *AppState) GetAppearance() int {
+	fitness, err := state.Fitness.Get()
+	if err != nil {
+		return 0
+	}
+	charisma, err := state.Charisma.Get()
+	if err != nil {
+		return 0
+	}
+	mood, err := state.Mood.Get()
+	if err != nil {
+		return 0
+	}
+	return (fitness + charisma + mood) / 3
+}
+
 func (state *AppState) GetSalary() int {
 	job, err := state.Job.Get()
 	if err != nil {
