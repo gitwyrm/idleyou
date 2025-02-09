@@ -9,45 +9,53 @@ import (
 )
 
 type AppState struct {
-	Work       binding.Int
-	WorkXP     binding.Int
-	Food       binding.Int
-	FoodMax    binding.Int
-	Energy     binding.Int
-	EnergyMax  binding.Int
-	Mood       binding.Int
-	Money      binding.Int
-	Charisma   binding.Int
-	Fitness    binding.Int
-	Job        binding.String
-	Working    binding.Bool
-	EventName  binding.String
-	EventValue binding.Int
-	EventMax   binding.Int
-	Messages   binding.StringList
-	Events     []Event
+	Work              binding.Int
+	WorkXP            binding.Int
+	Food              binding.Int
+	FoodMax           binding.Int
+	Energy            binding.Int
+	EnergyMax         binding.Int
+	Mood              binding.Int
+	Money             binding.Int
+	Charisma          binding.Int
+	Fitness           binding.Int
+	Job               binding.String
+	Working           binding.Bool
+	RoutineShower     binding.Bool
+	RoutineShave      binding.Bool
+	RoutineBrushTeeth binding.Bool
+	RoutineBonus      binding.Int
+	EventName         binding.String
+	EventValue        binding.Int
+	EventMax          binding.Int
+	Messages          binding.StringList
+	Events            []Event
 }
 
-func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, working bool, eventName string, eventValue int, eventMax int) *AppState {
+func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, working bool, routineShower bool, routineShave bool, routineBrushTeeth bool, routineBonus int, eventName string, eventValue int, eventMax int) *AppState {
 	var appstate AppState
 	appstate = AppState{
-		Work:       binding.NewInt(),
-		WorkXP:     binding.NewInt(),
-		Food:       binding.NewInt(),
-		FoodMax:    binding.NewInt(),
-		Energy:     binding.NewInt(),
-		EnergyMax:  binding.NewInt(),
-		Mood:       binding.NewInt(),
-		Money:      binding.NewInt(),
-		Charisma:   binding.NewInt(),
-		Fitness:    binding.NewInt(),
-		Job:        binding.NewString(),
-		Working:    binding.NewBool(),
-		EventName:  binding.NewString(),
-		EventValue: binding.NewInt(),
-		EventMax:   binding.NewInt(),
-		Messages:   binding.NewStringList(),
-		Events:     GetEvents(&appstate),
+		Work:              binding.NewInt(),
+		WorkXP:            binding.NewInt(),
+		Food:              binding.NewInt(),
+		FoodMax:           binding.NewInt(),
+		Energy:            binding.NewInt(),
+		EnergyMax:         binding.NewInt(),
+		Mood:              binding.NewInt(),
+		Money:             binding.NewInt(),
+		Charisma:          binding.NewInt(),
+		Fitness:           binding.NewInt(),
+		Job:               binding.NewString(),
+		Working:           binding.NewBool(),
+		RoutineShower:     binding.NewBool(),
+		RoutineShave:      binding.NewBool(),
+		RoutineBrushTeeth: binding.NewBool(),
+		RoutineBonus:      binding.NewInt(),
+		EventName:         binding.NewString(),
+		EventValue:        binding.NewInt(),
+		EventMax:          binding.NewInt(),
+		Messages:          binding.NewStringList(),
+		Events:            GetEvents(&appstate),
 	}
 	appstate.Work.Set(workValue)
 	appstate.WorkXP.Set(workXP)
@@ -61,6 +69,10 @@ func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, mood
 	appstate.Fitness.Set(fitnessValue)
 	appstate.Job.Set(job)
 	appstate.Working.Set(working)
+	appstate.RoutineShower.Set(routineShower)
+	appstate.RoutineShave.Set(routineShave)
+	appstate.RoutineBrushTeeth.Set(routineBrushTeeth)
+	appstate.RoutineBonus.Set(routineBonus)
 	appstate.EventName.Set(eventName)
 	appstate.EventValue.Set(eventValue)
 	appstate.EventMax.Set(eventMax)
@@ -80,6 +92,10 @@ func NewAppStateWithDefaults() *AppState {
 		0,        // fitnessValue
 		"Intern", // job
 		true,     // working
+		true,     // routineShower
+		false,    // routineShave
+		true,     // routineBrushTeeth
+		0,        // routineBonus
 		"",       // eventName
 		0,        // eventValue
 		100,      // eventMax
@@ -101,6 +117,10 @@ func fromJSON(jsonData string) *AppState {
 	moneyValue := data["money"]
 	job := data["job"]
 	working := data["working"]
+	routineShower := data["routineShower"]
+	routineShave := data["routineShave"]
+	routineBrushTeeth := data["routineBrushTeeth"]
+	routineBonus := data["routineBonus"]
 	eventName := data["eventName"]
 	eventValue := data["eventValue"]
 	eventMax := data["eventMax"]
@@ -119,6 +139,10 @@ func fromJSON(jsonData string) *AppState {
 		fitnessValue.(int),
 		job.(string),
 		working.(bool),
+		routineShower.(bool),
+		routineShave.(bool),
+		routineBrushTeeth.(bool),
+		routineBonus.(int),
 		eventName.(string),
 		eventValue.(int),
 		eventMax.(int),
@@ -321,7 +345,16 @@ func (state *AppState) GetAppearance() int {
 	if err != nil {
 		return 0
 	}
-	return (fitness + charisma + mood) / 3
+	bonus, err := state.RoutineBonus.Get()
+	if err != nil {
+		return 0
+	}
+	total := (fitness + charisma + mood) / 3
+	total += bonus
+	if total > 100 {
+		total = 100
+	}
+	return total
 }
 
 func (state *AppState) GetSalary() int {

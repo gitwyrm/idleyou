@@ -36,16 +36,57 @@ func (e *EventHandler) newHandlerWith(eventName string, doneMessage string, even
 			onTick()
 		}
 		if eventValue >= eventMax {
-			if onDone != nil {
-				onDone()
-			}
 			e.state.EventValue.RemoveListener(listener)
 			e.state.EventName.Set("")
 			e.state.Working.Set(true)
 			e.state.Messages.Prepend(doneMessage)
+			if onDone != nil {
+				onDone()
+			}
 		}
 	})
 	e.state.EventValue.AddListener(listener)
+}
+
+func (e *EventHandler) MorningRoutine() {
+	routineShower, err := e.state.RoutineShower.Get()
+	if err != nil {
+		fmt.Println("Error getting routine shower:", err)
+		return
+	}
+	routineShave, err := e.state.RoutineShave.Get()
+	if err != nil {
+		fmt.Println("Error getting routine shave:", err)
+		return
+	}
+	routineBrushTeeth, err := e.state.RoutineBrushTeeth.Get()
+	if err != nil {
+		fmt.Println("Error getting routine brush teeth:", err)
+		return
+	}
+	ticksNeeded := 0
+	bonus := 0
+	if routineShower {
+		ticksNeeded += 20
+		bonus += 10
+	}
+	if routineShave {
+		ticksNeeded += 10
+		bonus += 5
+	}
+	if routineBrushTeeth {
+		ticksNeeded += 5
+		bonus += 2
+	}
+	e.newHandlerWith(
+		"Morning Routine",
+		"You completed your morning routine.",
+		ticksNeeded,
+		func() {
+			e.state.RoutineBonus.Set(bonus)
+		},
+		nil,
+	)
 }
 
 func (e *EventHandler) Sleep() {
@@ -53,7 +94,9 @@ func (e *EventHandler) Sleep() {
 		"Sleeping",
 		"You slept well and feel refreshed.",
 		100,
-		nil,
+		func() {
+			e.MorningRoutine()
+		},
 		func() {
 			energy, err := e.state.Energy.Get()
 			if err != nil {

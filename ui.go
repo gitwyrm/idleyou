@@ -46,6 +46,7 @@ func setupUI(appstate *AppState) *fyne.Container {
 	appstate.Charisma.AddListener(appearanceListener)
 	appstate.Mood.AddListener(appearanceListener)
 	appstate.Fitness.AddListener(appearanceListener)
+	appstate.RoutineBonus.AddListener(appearanceListener)
 
 	progressContainer := container.New(
 		layout.NewFormLayout(),
@@ -135,6 +136,11 @@ func setupUI(appstate *AppState) *fyne.Container {
 		widget.NewLabel("Job:"), widget.NewLabelWithData(appstate.Job),
 		widget.NewLabel("Job experience:"), widget.NewLabelWithData(binding.IntToString(appstate.WorkXP)),
 		widget.NewLabel("Money:"), widget.NewLabelWithData(binding.IntToString(appstate.Money)),
+		widget.NewLabel("Morning routine"), container.NewHBox(
+			widget.NewCheckWithData("Shower", appstate.RoutineShower),
+			widget.NewCheckWithData("Shave", appstate.RoutineShave),
+			widget.NewCheckWithData("Brush teeth", appstate.RoutineBrushTeeth),
+		),
 	)
 
 	sidePanel := container.New(layout.NewVBoxLayout(), playerInfo, eventContainer)
