@@ -14,7 +14,7 @@ func Test_ScriptActionToFn(t *testing.T) {
 	state := NewAppStateWithDefaults()
 	state.WorkXP.Set(100)
 
-	action := scriptActionToFn(state, scriptAction)
+	action := scriptActionToFn(state, scriptAction, false)
 	action()
 
 	if state.Get("workxp") != 200 {

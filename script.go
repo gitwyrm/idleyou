@@ -38,10 +38,43 @@ type ScriptEvent struct {
 	Name             string
 	ScriptConditions []ScriptCondition
 	ScriptActions    []ScriptAction
+	Choices          map[string]string
 	Return           bool
 }
 
-func scriptActionToFn(state *AppState, action ScriptAction) func() {
+func scriptEventToEvent(state *AppState, scriptEvent ScriptEvent) Event {
+	isMultipleChoice := len(scriptEvent.Choices) > 0
+	conditions := []func() bool{}
+	for _, condition := range scriptEvent.ScriptConditions {
+		conditions = append(conditions, scriptConditionToFn(state, condition))
+	}
+	actions := []func(){}
+	for _, action := range scriptEvent.ScriptActions {
+		actions = append(actions, scriptActionToFn(state, action, isMultipleChoice))
+	}
+	event := NewEvent(
+		scriptEvent.Name,
+		func() bool {
+			for _, condition := range conditions {
+				if !condition() {
+					return false
+				}
+			}
+			return true
+		},
+		func() bool {
+			for _, action := range actions {
+				action()
+			}
+			return scriptEvent.Return
+		},
+		scriptEvent.Choices,
+	)
+
+	return event
+}
+
+func scriptActionToFn(state *AppState, action ScriptAction, isMultipleChoice bool) func() {
 	switch action.Operator {
 	case "=":
 		return func() {
@@ -65,6 +98,16 @@ func scriptActionToFn(state *AppState, action ScriptAction) func() {
 				state.Set(action.Variable, currentValue.(int)-action.Value.(int))
 			default:
 				log.Fatal("Unsupported type for -= operation")
+			}
+		}
+	case "":
+		if action.Variable == "print" {
+			return func() {
+				if isMultipleChoice {
+					// TODO: Display in multiple choice container
+				} else {
+					state.Messages.Prepend(action.Value.(string))
+				}
 			}
 		}
 	}
@@ -199,6 +242,7 @@ func parseScript(script string) []ScriptEvent {
 				Name:             strings.TrimSpace(line[3:]),
 				ScriptConditions: []ScriptCondition{},
 				ScriptActions:    []ScriptAction{},
+				Choices:          map[string]string{},
 			}
 
 		case strings.HasPrefix(line, "?"): // Condition
@@ -211,6 +255,12 @@ func parseScript(script string) []ScriptEvent {
 			if currentEvent != nil {
 				action := parseAction(line[1:])
 				currentEvent.ScriptActions = append(currentEvent.ScriptActions, action)
+			}
+
+		case strings.HasPrefix(line, "-"): // Choice
+			if currentEvent != nil {
+				key, value := parseChoice(line[1:])
+				currentEvent.Choices[key] = value
 			}
 
 		case strings.HasPrefix(line, ">"):
@@ -234,6 +284,20 @@ func parseScript(script string) []ScriptEvent {
 	}
 
 	return events
+}
+
+// Parses a choice line with the format:
+// key -> value
+func parseChoice(s string) (string, string) {
+	parts := strings.Split(s, "->")
+	if len(parts) != 2 {
+		panic(fmt.Sprintf("Invalid choice syntax: %s", s))
+	}
+
+	key := strings.TrimSpace(parts[0])
+	value := strings.TrimSpace(parts[1])
+
+	return key, value
 }
 
 func parseCondition(line string) ScriptCondition {

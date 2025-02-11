@@ -7,18 +7,20 @@ type Event struct {
 	Done      bool
 	Condition func() bool
 	Action    func() bool
+	Choices   map[string]string
 }
 
 // Creates a new Event which is displayed in the eventContainer
 //
 // If the condition returns true, the event is executed.
 // If the action returns true, the event is marked as done.
-func NewEvent(name string, condition func() bool, action func() bool) Event {
+func NewEvent(name string, condition func() bool, action func() bool, choices map[string]string) Event {
 	return Event{
 		Name:      name,
 		Done:      false,
 		Condition: condition,
 		Action:    action,
+		Choices:   choices,
 	}
 }
 
@@ -38,6 +40,7 @@ func GetEvents(appstate *AppState) []Event {
 				appstate.Messages.Prepend("Event: You got promoted to Sales clerk!")
 				return true
 			},
+			nil,
 		),
 		NewEvent(
 			"Promotion to Manager",
@@ -53,6 +56,7 @@ func GetEvents(appstate *AppState) []Event {
 				appstate.Messages.Prepend("Event: You got promoted to Manager!")
 				return true
 			},
+			nil,
 		),
 		NewEvent(
 			"Bullied at work",
@@ -87,6 +91,7 @@ func GetEvents(appstate *AppState) []Event {
 				appstate.Mood.Set(mood)
 				return false
 			},
+			nil,
 		),
 	}
 }
