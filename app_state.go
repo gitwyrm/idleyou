@@ -245,7 +245,7 @@ func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, mood
 		ChoiceEventName:    binding.NewString(),
 		ChoiceEventChoices: binding.NewStringList(),
 		Messages:           binding.NewStringList(),
-		Events:             GetEvents(&appstate),
+		Events:             []Event{},
 	}
 	appstate.Work.Set(workValue)
 	appstate.WorkXP.Set(workXP)
@@ -268,6 +268,7 @@ func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, mood
 	appstate.EventMax.Set(eventMax)
 	appstate.ChoiceEventName.Set(choiceEventName)
 	appstate.ChoiceEventChoices.Set(choiceEventChoices)
+	appstate.Events = GetEvents(&appstate)
 	return &appstate
 }
 

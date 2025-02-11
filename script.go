@@ -128,26 +128,48 @@ func scriptConditionToFn(state *AppState, condition ScriptCondition) func() bool
 		valueIsFloat = false
 	}
 
-	var variableInt int
-	var variableFloat float64
-	var variableString string
+	//variableIsInt := false
+	variableIsFloat := false
+	//variableIsString := false
 
-	variable := state.Get(condition.Variable)
-	switch variable.(type) {
+	switch state.Get(condition.Variable).(type) {
 	case int:
-		variableInt = variable.(int)
+		//variableIsInt = true
 	case float64:
-		variableFloat = variable.(float64)
+		variableIsFloat = true
 	case string:
-		variableString = variable.(string)
+		//variableIsString = true
 	default:
-		return func() bool { return false }
+		//variableIsInt = false
+		variableIsFloat = false
+		//variableIsString = false
+	}
+
+	getVariableValue := func() (int, float64, string) {
+		var variableInt int
+		var variableFloat float64
+		var variableString string
+
+		variable := state.Get(condition.Variable)
+		switch variable.(type) {
+		case int:
+			variableInt = variable.(int)
+		case float64:
+			variableFloat = variable.(float64)
+		case string:
+			variableString = variable.(string)
+		default:
+			return 0, 0.0, ""
+		}
+
+		return variableInt, variableFloat, variableString
 	}
 
 	switch condition.Operator {
 	case "<":
-		if valueIsFloat && variableFloat != 0.0 {
+		if valueIsFloat && variableIsFloat {
 			return func() bool {
+				_, variableFloat, _ := getVariableValue()
 				return variableFloat < condition.Value.(float64)
 			}
 		}
@@ -155,11 +177,13 @@ func scriptConditionToFn(state *AppState, condition ScriptCondition) func() bool
 			return func() bool { return false }
 		}
 		return func() bool {
+			variableInt, _, _ := getVariableValue()
 			return variableInt < condition.Value.(int)
 		}
 	case ">":
-		if valueIsFloat && variableFloat != 0.0 {
+		if valueIsFloat && variableIsFloat {
 			return func() bool {
+				_, variableFloat, _ := getVariableValue()
 				return variableFloat > condition.Value.(float64)
 			}
 		}
@@ -167,11 +191,13 @@ func scriptConditionToFn(state *AppState, condition ScriptCondition) func() bool
 			return func() bool { return false }
 		}
 		return func() bool {
+			variableInt, _, _ := getVariableValue()
 			return variableInt > condition.Value.(int)
 		}
 	case "<=":
-		if valueIsFloat && variableFloat != 0.0 {
+		if valueIsFloat && variableIsFloat {
 			return func() bool {
+				_, variableFloat, _ := getVariableValue()
 				return variableFloat <= condition.Value.(float64)
 			}
 		}
@@ -179,11 +205,13 @@ func scriptConditionToFn(state *AppState, condition ScriptCondition) func() bool
 			return func() bool { return false }
 		}
 		return func() bool {
+			variableInt, _, _ := getVariableValue()
 			return variableInt <= condition.Value.(int)
 		}
 	case ">=":
-		if valueIsFloat && variableFloat != 0.0 {
+		if valueIsFloat && variableIsFloat {
 			return func() bool {
+				_, variableFloat, _ := getVariableValue()
 				return variableFloat >= condition.Value.(float64)
 			}
 		}
@@ -191,30 +219,37 @@ func scriptConditionToFn(state *AppState, condition ScriptCondition) func() bool
 			return func() bool { return false }
 		}
 		return func() bool {
+			variableInt, _, _ := getVariableValue()
 			return variableInt >= condition.Value.(int)
 		}
 	case "==":
-		if valueIsFloat && variableFloat != 0.0 {
+		if valueIsFloat && variableIsFloat {
 			return func() bool {
+				_, variableFloat, _ := getVariableValue()
 				return variableFloat == condition.Value.(float64)
 			}
 		}
 		if !valueIsInt {
+			_, _, variableString := getVariableValue()
 			return func() bool { return variableString == condition.Value.(string) }
 		}
 		return func() bool {
+			variableInt, _, _ := getVariableValue()
 			return variableInt == condition.Value.(int)
 		}
 	case "!=":
-		if valueIsFloat && variableFloat != 0.0 {
+		if valueIsFloat && variableIsFloat {
 			return func() bool {
+				_, variableFloat, _ := getVariableValue()
 				return variableFloat != condition.Value.(float64)
 			}
 		}
 		if !valueIsInt {
+			_, _, variableString := getVariableValue()
 			return func() bool { return variableString != condition.Value.(string) }
 		}
 		return func() bool {
+			variableInt, _, _ := getVariableValue()
 			return variableInt != condition.Value.(int)
 		}
 	default:
@@ -341,7 +376,7 @@ func parseAction(line string) ScriptAction {
 		return ScriptAction{
 			Variable: parts[0],
 			Operator: parts[1],
-			Value:    parts[2],
+			Value:    strings.Join(parts[2:], " "),
 		}
 	}
 

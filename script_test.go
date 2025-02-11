@@ -4,6 +4,32 @@ import (
 	"testing"
 )
 
+func Test_ScriptEventToEvent(t *testing.T) {
+	script := `=== Working a lot
+? workxp == 200
+! print You worked a lot.
+> true`
+
+	scriptEvents := parseScript(script)
+
+	scriptEvent := scriptEvents[0]
+
+	state := NewAppStateWithDefaults()
+	state.WorkXP.Set(200)
+
+	event := scriptEventToEvent(state, scriptEvent)
+
+	if !event.Condition() {
+		t.Errorf("Expected event condition to be true")
+	}
+
+	state.WorkXP.Set(100)
+
+	if event.Condition() {
+		t.Errorf("Expected event condition to be false")
+	}
+}
+
 func Test_ScriptActionToFn(t *testing.T) {
 	scriptAction := ScriptAction{
 		Variable: "workxp",

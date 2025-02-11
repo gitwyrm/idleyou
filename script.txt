@@ -5,3 +5,9 @@
 ! mood -= 10
 ! print Event: You were bullied at work and feel a bit worse.
 > false
+
+=== Promotion to Sales clerk
+? workxp == 200
+! job = Sales clerk
+! print Event: You got promoted to Sales clerk!
+> true

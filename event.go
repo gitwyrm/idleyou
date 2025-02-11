@@ -1,7 +1,5 @@
 package main
 
-import "math/rand/v2"
-
 type Event struct {
 	Name      string
 	Done      bool
@@ -25,23 +23,16 @@ func NewEvent(name string, condition func() bool, action func() bool, choices ma
 }
 
 func GetEvents(appstate *AppState) []Event {
-	return []Event{
-		NewEvent(
-			"Promotion to Sales clerk",
-			func() bool {
-				workXP, err := appstate.WorkXP.Get()
-				if err != nil {
-					return false
-				}
-				return workXP == 200
-			},
-			func() bool {
-				appstate.Job.Set("Sales clerk")
-				appstate.Messages.Prepend("Event: You got promoted to Sales clerk!")
-				return true
-			},
-			nil,
-		),
+	var events []Event
+
+	script := readScript()
+	scriptEvents := parseScript(script)
+	for _, scriptEvent := range scriptEvents {
+		event := scriptEventToEvent(appstate, scriptEvent)
+		events = append(events, event)
+	}
+
+	otherEvents := []Event{
 		NewEvent(
 			"Promotion to Manager",
 			func() bool {
@@ -55,41 +46,6 @@ func GetEvents(appstate *AppState) []Event {
 				appstate.Job.Set("Manager")
 				appstate.Messages.Prepend("Event: You got promoted to Manager!")
 				return true
-			},
-			nil,
-		),
-		NewEvent(
-			"Bullied at work",
-			func() bool {
-				working, err := appstate.Working.Get()
-				if err != nil {
-					return false
-				}
-				mood, err := appstate.Mood.Get()
-				if err != nil {
-					return false
-				}
-				if !working {
-					return false
-				}
-				if mood <= 0 {
-					return false
-				}
-				// 0.1% chance
-				return rand.Float64() < 0.001
-			},
-			func() bool {
-				appstate.Messages.Prepend("Event: You were bullied at work and feel a bit worse.")
-				mood, err := appstate.Mood.Get()
-				if err != nil {
-					return false
-				}
-				mood -= 10
-				if mood < 0 {
-					mood = 0
-				}
-				appstate.Mood.Set(mood)
-				return false
 			},
 			nil,
 		),
@@ -129,4 +85,7 @@ func GetEvents(appstate *AppState) []Event {
 			nil,
 		),
 	}
+
+	events = append(events, otherEvents...)
+	return events
 }

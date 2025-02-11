@@ -1,6 +1,8 @@
 package main
 
 import (
+	"embed"
+	"log"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -11,6 +13,18 @@ const (
 	// Define constants for game mechanics
 	GameSpeed = time.Millisecond * 100
 )
+
+//go:embed script.txt
+var scriptFile embed.FS
+
+func readScript() string {
+	data, err := scriptFile.ReadFile("script.txt")
+	if err != nil {
+		log.Fatal("Error reading embedded script:", err)
+	}
+
+	return string(data)
+}
 
 func main() {
 	appstate := NewAppStateWithDefaults()
