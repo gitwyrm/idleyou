@@ -11,3 +11,25 @@
 ! job = Sales clerk
 ! print Event: You got promoted to Sales clerk!
 > true
+
+=== Promotion to Manager
+? workxp == 1000
+! job = Manager
+! print Event: You got promoted to Manager!
+> true
+
+=== Test Choice Event
+? workxp == 300
+- Choice 1 -> Chose 1
+- Choice 2 -> Chose 2
+> true
+
+=== Chose 1
+? false
+! print Event: You chose 1.
+> true
+
+=== Chose 2
+? false
+! print Event: You chose 2.
+> true

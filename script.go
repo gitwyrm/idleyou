@@ -116,6 +116,13 @@ func scriptActionToFn(state *AppState, action ScriptAction, isMultipleChoice boo
 }
 
 func scriptConditionToFn(state *AppState, condition ScriptCondition) func() bool {
+	// special case for boolean
+	if condition.Variable == "boolean" {
+		return func() bool {
+			return condition.Value.(bool)
+		}
+	}
+
 	valueIsInt := false
 	valueIsFloat := false
 	switch condition.Value.(type) {
@@ -337,6 +344,24 @@ func parseChoice(s string) (string, string) {
 
 func parseCondition(line string) ScriptCondition {
 	parts := strings.Fields(strings.TrimSpace(line))
+
+	if len(parts) == 1 {
+		var boolean bool
+		switch parts[0] {
+		case "true":
+			boolean = true
+		case "false":
+			boolean = false
+		default:
+			panic(fmt.Sprintf("Invalid boolean value: %s", parts[0]))
+		}
+		return ScriptCondition{
+			Variable: "boolean",
+			Operator: "",
+			Value:    boolean,
+		}
+	}
+
 	if len(parts) != 3 {
 		panic(fmt.Sprintf("Invalid condition syntax: %s", line))
 	}
