@@ -22,16 +22,20 @@ lines starting with ! into actions for the event.
 > true/false is the return value of the event, true marks it as done
 */
 
+// -----------------------------
+// Script Types
+// -----------------------------
+
 type ScriptCondition struct {
 	Variable string
 	Operator string
-	Value    interface{} // string, float64 or int
+	Value    interface{} // string, float64, int or bool
 }
 
 type ScriptAction struct {
 	Variable string
 	Operator string
-	Value    interface{} // string, float64 or int
+	Value    interface{} // string, float64, or int
 }
 
 type ScriptEvent struct {
@@ -42,16 +46,142 @@ type ScriptEvent struct {
 	Return           bool
 }
 
+// -----------------------------
+// Utility Functions
+// -----------------------------
+
+// getVariableType returns booleans indicating whether the value is an int, float64 or string
+func getVariableType(value interface{}) (isInt, isFloat, isString bool) {
+	switch value.(type) {
+	case int:
+		return true, false, false
+	case float64:
+		return false, true, false
+	case string:
+		return false, false, true
+	default:
+		return false, false, false
+	}
+}
+
+// getVariableValue extracts the value as int, float64, or string.
+// Only one of the returned values will be non-zero/non-empty based on the type.
+func getVariableValue(value interface{}) (int, float64, string) {
+	switch v := value.(type) {
+	case int:
+		return v, 0, ""
+	case float64:
+		return 0, v, ""
+	case string:
+		return 0, 0, v
+	default:
+		return 0, 0, ""
+	}
+}
+
+// evaluateCondition compares two numbers (either both ints or both floats)
+// based on the operator.
+func evaluateCondition(operator string, varInt, valInt int, varFloat, valFloat float64) bool {
+	// If comparing floats, use float comparison
+	if varFloat != 0 || valFloat != 0 {
+		switch operator {
+		case "<":
+			return varFloat < valFloat
+		case ">":
+			return varFloat > valFloat
+		case "<=":
+			return varFloat <= valFloat
+		case ">=":
+			return varFloat >= valFloat
+		case "==":
+			return varFloat == valFloat
+		case "!=":
+			return varFloat != valFloat
+		default:
+			panic(fmt.Sprintf("Unknown operator: %s", operator))
+		}
+	} else {
+		// Otherwise, compare ints
+		switch operator {
+		case "<":
+			return varInt < valInt
+		case ">":
+			return varInt > valInt
+		case "<=":
+			return varInt <= valInt
+		case ">=":
+			return varInt >= valInt
+		case "==":
+			return varInt == valInt
+		case "!=":
+			return varInt != valInt
+		default:
+			panic(fmt.Sprintf("Unknown operator: %s", operator))
+		}
+	}
+}
+
+// evaluateNumericCondition determines whether both values are numeric and uses the
+// appropriate comparison. If the types do not match, it returns false.
+func evaluateNumericCondition(operator string, varVal, condVal interface{}) bool {
+	varIsInt, varIsFloat, _ := getVariableType(varVal)
+	condIsInt, condIsFloat, _ := getVariableType(condVal)
+
+	if varIsFloat && condIsFloat {
+		_, varFloat, _ := getVariableValue(varVal)
+		_, condFloat, _ := getVariableValue(condVal)
+		return evaluateCondition(operator, 0, 0, varFloat, condFloat)
+	} else if varIsInt && condIsInt {
+		varInt, _, _ := getVariableValue(varVal)
+		condInt, _, _ := getVariableValue(condVal)
+		return evaluateCondition(operator, varInt, condInt, 0, 0)
+	}
+	// Mismatched or non-numeric types result in false
+	return false
+}
+
+// modifyState applies an action to the state
+func modifyState(state *AppState, variable, operator string, value interface{}) {
+	currentValue := state.Get(variable)
+	switch operator {
+	case "=":
+		state.Set(variable, value)
+	case "+=":
+		if intVal, ok := currentValue.(int); ok {
+			state.Set(variable, intVal+value.(int))
+		} else {
+			log.Fatal("Unsupported type for += operation on variable ", variable)
+		}
+	case "-=":
+		if intVal, ok := currentValue.(int); ok {
+			state.Set(variable, intVal-value.(int))
+		} else {
+			log.Fatal("Unsupported type for -= operation on variable ", variable)
+		}
+	default:
+		log.Fatal("Unknown operator: ", operator)
+	}
+}
+
+// -----------------------------
+// Converting ScriptEvent to Event
+// -----------------------------
+
 func scriptEventToEvent(state *AppState, scriptEvent ScriptEvent) Event {
 	isMultipleChoice := len(scriptEvent.Choices) > 0
-	conditions := []func() bool{}
+
+	// Build condition functions
+	var conditions []func() bool
 	for _, condition := range scriptEvent.ScriptConditions {
 		conditions = append(conditions, scriptConditionToFn(state, condition))
 	}
-	actions := []func(){}
+
+	// Build action functions
+	var actions []func()
 	for _, action := range scriptEvent.ScriptActions {
 		actions = append(actions, scriptActionToFn(state, action, isMultipleChoice))
 	}
+
 	event := NewEvent(
 		scriptEvent.Name,
 		func() bool {
@@ -74,195 +204,63 @@ func scriptEventToEvent(state *AppState, scriptEvent ScriptEvent) Event {
 	return event
 }
 
+// -----------------------------
+// Script Action and Condition Functions
+// -----------------------------
+
 func scriptActionToFn(state *AppState, action ScriptAction, isMultipleChoice bool) func() {
-	switch action.Operator {
-	case "=":
+	// Special case for print commands
+	if action.Operator == "" && action.Variable == "print" {
 		return func() {
-			state.Set(action.Variable, action.Value)
-		}
-	case "+=":
-		return func() {
-			currentValue := state.Get(action.Variable)
-			switch currentValue.(type) {
-			case int:
-				state.Set(action.Variable, currentValue.(int)+action.Value.(int))
-			default:
-				log.Fatal("Unsupported type for += operation")
-			}
-		}
-	case "-=":
-		return func() {
-			currentValue := state.Get(action.Variable)
-			switch currentValue.(type) {
-			case int:
-				state.Set(action.Variable, currentValue.(int)-action.Value.(int))
-			default:
-				log.Fatal("Unsupported type for -= operation")
-			}
-		}
-	case "":
-		if action.Variable == "print" {
-			return func() {
-				if isMultipleChoice {
-					// TODO: Display in multiple choice container
-				} else {
-					state.Messages.Prepend(action.Value.(string))
-				}
+			if isMultipleChoice {
+				// TODO: Display message above multiple-choice options
+			} else {
+				state.Messages.Prepend(action.Value.(string))
 			}
 		}
 	}
-
-	return func() {}
+	// For other operations, use modifyState
+	return func() {
+		modifyState(state, action.Variable, action.Operator, action.Value)
+	}
 }
 
 func scriptConditionToFn(state *AppState, condition ScriptCondition) func() bool {
-	// special case for boolean
+	// Special case for literal boolean conditions
 	if condition.Variable == "boolean" {
-		return func() bool {
-			return condition.Value.(bool)
+		boolVal, ok := condition.Value.(bool)
+		if !ok {
+			panic("Invalid boolean value in condition")
 		}
+		return func() bool { return boolVal }
 	}
 
-	valueIsInt := false
-	valueIsFloat := false
-	switch condition.Value.(type) {
-	case int:
-		valueIsInt = true
-	case float64:
-		valueIsFloat = true
-	default:
-		valueIsInt = false
-		valueIsFloat = false
-	}
+	return func() bool {
+		// Retrieve the variable's current value from the state
+		variableValue := state.Get(condition.Variable)
 
-	//variableIsInt := false
-	variableIsFloat := false
-	//variableIsString := false
-
-	switch state.Get(condition.Variable).(type) {
-	case int:
-		//variableIsInt = true
-	case float64:
-		variableIsFloat = true
-	case string:
-		//variableIsString = true
-	default:
-		//variableIsInt = false
-		variableIsFloat = false
-		//variableIsString = false
-	}
-
-	getVariableValue := func() (int, float64, string) {
-		var variableInt int
-		var variableFloat float64
-		var variableString string
-
-		variable := state.Get(condition.Variable)
-		switch variable.(type) {
-		case int:
-			variableInt = variable.(int)
-		case float64:
-			variableFloat = variable.(float64)
-		case string:
-			variableString = variable.(string)
-		default:
-			return 0, 0.0, ""
-		}
-
-		return variableInt, variableFloat, variableString
-	}
-
-	switch condition.Operator {
-	case "<":
-		if valueIsFloat && variableIsFloat {
-			return func() bool {
-				_, variableFloat, _ := getVariableValue()
-				return variableFloat < condition.Value.(float64)
+		// If both variable and condition are strings, compare them
+		_, _, variableIsString := getVariableType(variableValue)
+		_, _, valueIsString := getVariableType(condition.Value)
+		if variableIsString && valueIsString {
+			switch condition.Operator {
+			case "==":
+				return variableValue.(string) == condition.Value.(string)
+			case "!=":
+				return variableValue.(string) != condition.Value.(string)
+			default:
+				return false
 			}
 		}
-		if !valueIsInt {
-			return func() bool { return false }
-		}
-		return func() bool {
-			variableInt, _, _ := getVariableValue()
-			return variableInt < condition.Value.(int)
-		}
-	case ">":
-		if valueIsFloat && variableIsFloat {
-			return func() bool {
-				_, variableFloat, _ := getVariableValue()
-				return variableFloat > condition.Value.(float64)
-			}
-		}
-		if !valueIsInt {
-			return func() bool { return false }
-		}
-		return func() bool {
-			variableInt, _, _ := getVariableValue()
-			return variableInt > condition.Value.(int)
-		}
-	case "<=":
-		if valueIsFloat && variableIsFloat {
-			return func() bool {
-				_, variableFloat, _ := getVariableValue()
-				return variableFloat <= condition.Value.(float64)
-			}
-		}
-		if !valueIsInt {
-			return func() bool { return false }
-		}
-		return func() bool {
-			variableInt, _, _ := getVariableValue()
-			return variableInt <= condition.Value.(int)
-		}
-	case ">=":
-		if valueIsFloat && variableIsFloat {
-			return func() bool {
-				_, variableFloat, _ := getVariableValue()
-				return variableFloat >= condition.Value.(float64)
-			}
-		}
-		if !valueIsInt {
-			return func() bool { return false }
-		}
-		return func() bool {
-			variableInt, _, _ := getVariableValue()
-			return variableInt >= condition.Value.(int)
-		}
-	case "==":
-		if valueIsFloat && variableIsFloat {
-			return func() bool {
-				_, variableFloat, _ := getVariableValue()
-				return variableFloat == condition.Value.(float64)
-			}
-		}
-		if !valueIsInt {
-			_, _, variableString := getVariableValue()
-			return func() bool { return variableString == condition.Value.(string) }
-		}
-		return func() bool {
-			variableInt, _, _ := getVariableValue()
-			return variableInt == condition.Value.(int)
-		}
-	case "!=":
-		if valueIsFloat && variableIsFloat {
-			return func() bool {
-				_, variableFloat, _ := getVariableValue()
-				return variableFloat != condition.Value.(float64)
-			}
-		}
-		if !valueIsInt {
-			_, _, variableString := getVariableValue()
-			return func() bool { return variableString != condition.Value.(string) }
-		}
-		return func() bool {
-			variableInt, _, _ := getVariableValue()
-			return variableInt != condition.Value.(int)
-		}
-	default:
-		panic(fmt.Sprintf("Unknown operator: %s", condition.Operator))
+
+		// Otherwise, treat them as numeric
+		return evaluateNumericCondition(condition.Operator, variableValue, condition.Value)
 	}
 }
+
+// -----------------------------
+// Script Parsing Functions
+// -----------------------------
 
 func parseScript(script string) []ScriptEvent {
 	lines := strings.Split(script, "\n")
@@ -307,20 +305,20 @@ func parseScript(script string) []ScriptEvent {
 
 		case strings.HasPrefix(line, ">"):
 			if currentEvent != nil {
-				Return := line[2:]
-				switch Return {
+				retStr := strings.TrimSpace(line[1:])
+				switch retStr {
 				case "true":
 					currentEvent.Return = true
 				case "false":
 					currentEvent.Return = false
 				default:
-					log.Fatal("Error parsing ScriptEvent Return")
+					log.Fatal("Error parsing ScriptEvent Return:", retStr)
 				}
 			}
 		}
 	}
 
-	// Append last event
+	// Append the final event
 	if currentEvent != nil {
 		events = append(events, *currentEvent)
 	}
@@ -328,23 +326,25 @@ func parseScript(script string) []ScriptEvent {
 	return events
 }
 
-// Parses a choice line with the format:
-// key -> value
+// parseChoice parses a choice line in the format: key -> value
 func parseChoice(s string) (string, string) {
 	parts := strings.Split(s, "->")
 	if len(parts) != 2 {
 		panic(fmt.Sprintf("Invalid choice syntax: %s", s))
 	}
-
 	key := strings.TrimSpace(parts[0])
 	value := strings.TrimSpace(parts[1])
-
 	return key, value
 }
 
+// parseCondition parses a condition line.
+// Examples:
+//
+//	"mood <= 10"  -> variable: mood, operator: <=, value: 10 (int)
+//	"status == happy" -> variable: status, operator: ==, value: "happy"
 func parseCondition(line string) ScriptCondition {
 	parts := strings.Fields(strings.TrimSpace(line))
-
+	// Handle literal booleans
 	if len(parts) == 1 {
 		var boolean bool
 		switch parts[0] {
@@ -366,29 +366,35 @@ func parseCondition(line string) ScriptCondition {
 		panic(fmt.Sprintf("Invalid condition syntax: %s", line))
 	}
 
-	value, err := strconv.Atoi(parts[2])
-	if err != nil {
+	// Attempt to parse the third part as an int
+	if val, err := strconv.Atoi(parts[2]); err == nil {
 		return ScriptCondition{
 			Variable: parts[0],
 			Operator: parts[1],
-			Value:    parts[2],
+			Value:    val,
 		}
 	}
-
+	// If not an int, keep it as a string
 	return ScriptCondition{
 		Variable: parts[0],
 		Operator: parts[1],
-		Value:    value,
+		Value:    parts[2],
 	}
 }
 
+// parseAction parses an action line.
+// Examples:
+//
+//	"print You went outside" -> variable: print, value: "You went outside"
+//	"mood += 10" -> variable: mood, operator: +=, value: 10 (int)
 func parseAction(line string) ScriptAction {
 	parts := strings.Fields(strings.TrimSpace(line))
 	if len(parts) < 2 {
 		panic(fmt.Sprintf("Invalid action syntax: %s", line))
 	}
 
-	if parts[0] == "print" { // Special case for print statements
+	// Special handling for print commands
+	if parts[0] == "print" {
 		return ScriptAction{
 			Variable: "print",
 			Operator: "",
@@ -396,8 +402,16 @@ func parseAction(line string) ScriptAction {
 		}
 	}
 
-	value, err := strconv.Atoi(parts[2])
-	if err != nil {
+	// For other actions, try parsing the value as an int
+	if len(parts) >= 3 {
+		if val, err := strconv.Atoi(parts[2]); err == nil {
+			return ScriptAction{
+				Variable: parts[0],
+				Operator: parts[1],
+				Value:    val,
+			}
+		}
+		// Otherwise, treat it as a string
 		return ScriptAction{
 			Variable: parts[0],
 			Operator: parts[1],
@@ -405,9 +419,5 @@ func parseAction(line string) ScriptAction {
 		}
 	}
 
-	return ScriptAction{
-		Variable: parts[0],
-		Operator: parts[1],
-		Value:    value,
-	}
+	panic(fmt.Sprintf("Invalid action syntax: %s", line))
 }
