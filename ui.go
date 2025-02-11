@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"fyne.io/fyne/v2"
@@ -73,6 +74,61 @@ func setupUI(appstate *AppState) *fyne.Container {
 			eventContainer.Hide()
 		} else {
 			eventContainer.Show()
+		}
+	}))
+
+	// Choice event buttons
+	choiceButtons := container.New(
+		layout.NewVBoxLayout(),
+	)
+
+	// Choice event container
+	choiceContainer := container.New(
+		layout.NewVBoxLayout(),
+		widget.NewLabelWithData(appstate.ChoiceEventName),
+		choiceButtons,
+	)
+
+	appstate.ChoiceEventName.AddListener(binding.NewDataListener(func() {
+		choiceEventName, err := appstate.ChoiceEventName.Get()
+		if err != nil {
+			fmt.Println("Error getting choice event name:", err)
+			return
+		}
+		if choiceEventName == "" {
+			choiceContainer.Hide()
+		} else {
+			choiceContainer.Show()
+		}
+	}))
+
+	appstate.ChoiceEventChoices.AddListener(binding.NewDataListener(func() {
+		choiceEventChoices, err := appstate.ChoiceEventChoices.Get()
+		if err != nil {
+			fmt.Println("Error getting choice event choices:", err)
+			return
+		}
+
+		// create a button for each choice
+		choiceButtons.RemoveAll()
+		for _, choice := range choiceEventChoices {
+			button := widget.NewButton(choice, func() {
+				currentEventName, err := appstate.ChoiceEventName.Get()
+				if err != nil {
+					fmt.Println("Error getting current event name:", err)
+					return
+				}
+				currentEvent := appstate.GetEvent(currentEventName)
+				appstate.ChoiceEventChoices.Set([]string{})
+				appstate.ChoiceEventName.Set("")
+				event := appstate.GetEvent(currentEvent.Choices[choice])
+				if event == nil {
+					log.Fatalf("Event not found: '%s'", currentEvent.Choices[choice])
+					return
+				}
+				appstate.handleEvent(event, true)
+			})
+			choiceButtons.Add(button)
 		}
 	}))
 
@@ -167,7 +223,7 @@ func setupUI(appstate *AppState) *fyne.Container {
 	// Buttons and progress bars
 	column := container.New(layout.NewVBoxLayout(), progressContainer, buttonRow, saveButton)
 
-	content := container.New(layout.NewGridLayout(2), column, sidePanel)
+	content := container.New(layout.NewGridLayout(3), column, sidePanel, choiceContainer)
 
 	// Column with buttons and progress at the top, messages at the center so they fill the space
 	return container.NewBorder(content, nil, nil, nil, messageList)

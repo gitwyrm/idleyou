@@ -11,27 +11,29 @@ import (
 )
 
 type AppState struct {
-	Work              binding.Int
-	WorkXP            binding.Int
-	Food              binding.Int
-	FoodMax           binding.Int
-	Energy            binding.Int
-	EnergyMax         binding.Int
-	Mood              binding.Int
-	Money             binding.Int
-	Charisma          binding.Int
-	Fitness           binding.Int
-	Job               binding.String
-	Working           binding.Bool
-	RoutineShower     binding.Bool
-	RoutineShave      binding.Bool
-	RoutineBrushTeeth binding.Bool
-	RoutineBonus      binding.Int
-	EventName         binding.String
-	EventValue        binding.Int
-	EventMax          binding.Int
-	Messages          binding.StringList
-	Events            []Event
+	Work               binding.Int
+	WorkXP             binding.Int
+	Food               binding.Int
+	FoodMax            binding.Int
+	Energy             binding.Int
+	EnergyMax          binding.Int
+	Mood               binding.Int
+	Money              binding.Int
+	Charisma           binding.Int
+	Fitness            binding.Int
+	Job                binding.String
+	Working            binding.Bool
+	RoutineShower      binding.Bool
+	RoutineShave       binding.Bool
+	RoutineBrushTeeth  binding.Bool
+	RoutineBonus       binding.Int
+	EventName          binding.String
+	EventValue         binding.Int
+	EventMax           binding.Int
+	ChoiceEventName    binding.String
+	ChoiceEventChoices binding.StringList
+	Messages           binding.StringList
+	Events             []Event
 }
 
 // function so set app state variable via string name
@@ -80,6 +82,16 @@ func (a *AppState) Set(variable string, value interface{}) {
 	case "events":
 		a.Events = value.([]Event)
 	}
+}
+
+// function to get an Event by name
+func (a *AppState) GetEvent(name string) *Event {
+	for i, event := range a.Events {
+		if event.Name == name {
+			return &a.Events[i]
+		}
+	}
+	return nil
 }
 
 // function to get app state variable via string name
@@ -208,30 +220,32 @@ func (a *AppState) Get(variable string) interface{} {
 	}
 }
 
-func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, working bool, routineShower bool, routineShave bool, routineBrushTeeth bool, routineBonus int, eventName string, eventValue int, eventMax int) *AppState {
+func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, working bool, routineShower bool, routineShave bool, routineBrushTeeth bool, routineBonus int, eventName string, eventValue int, eventMax int, choiceEventName string, choiceEventChoices []string) *AppState {
 	var appstate AppState
 	appstate = AppState{
-		Work:              binding.NewInt(),
-		WorkXP:            binding.NewInt(),
-		Food:              binding.NewInt(),
-		FoodMax:           binding.NewInt(),
-		Energy:            binding.NewInt(),
-		EnergyMax:         binding.NewInt(),
-		Mood:              binding.NewInt(),
-		Money:             binding.NewInt(),
-		Charisma:          binding.NewInt(),
-		Fitness:           binding.NewInt(),
-		Job:               binding.NewString(),
-		Working:           binding.NewBool(),
-		RoutineShower:     binding.NewBool(),
-		RoutineShave:      binding.NewBool(),
-		RoutineBrushTeeth: binding.NewBool(),
-		RoutineBonus:      binding.NewInt(),
-		EventName:         binding.NewString(),
-		EventValue:        binding.NewInt(),
-		EventMax:          binding.NewInt(),
-		Messages:          binding.NewStringList(),
-		Events:            GetEvents(&appstate),
+		Work:               binding.NewInt(),
+		WorkXP:             binding.NewInt(),
+		Food:               binding.NewInt(),
+		FoodMax:            binding.NewInt(),
+		Energy:             binding.NewInt(),
+		EnergyMax:          binding.NewInt(),
+		Mood:               binding.NewInt(),
+		Money:              binding.NewInt(),
+		Charisma:           binding.NewInt(),
+		Fitness:            binding.NewInt(),
+		Job:                binding.NewString(),
+		Working:            binding.NewBool(),
+		RoutineShower:      binding.NewBool(),
+		RoutineShave:       binding.NewBool(),
+		RoutineBrushTeeth:  binding.NewBool(),
+		RoutineBonus:       binding.NewInt(),
+		EventName:          binding.NewString(),
+		EventValue:         binding.NewInt(),
+		EventMax:           binding.NewInt(),
+		ChoiceEventName:    binding.NewString(),
+		ChoiceEventChoices: binding.NewStringList(),
+		Messages:           binding.NewStringList(),
+		Events:             GetEvents(&appstate),
 	}
 	appstate.Work.Set(workValue)
 	appstate.WorkXP.Set(workXP)
@@ -252,29 +266,33 @@ func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, mood
 	appstate.EventName.Set(eventName)
 	appstate.EventValue.Set(eventValue)
 	appstate.EventMax.Set(eventMax)
+	appstate.ChoiceEventName.Set(choiceEventName)
+	appstate.ChoiceEventChoices.Set(choiceEventChoices)
 	return &appstate
 }
 
 func NewAppStateWithDefaults() *AppState {
 	return NewAppState(
-		0,        // workValue
-		0,        // workXP
-		100,      // foodValue
-		100,      // energyValue
-		100,      // energyMaxValue
-		50,       // moodValue
-		0,        // charismaValue
-		100,      // moneyValue
-		0,        // fitnessValue
-		"Intern", // job
-		true,     // working
-		true,     // routineShower
-		false,    // routineShave
-		true,     // routineBrushTeeth
-		0,        // routineBonus
-		"",       // eventName
-		0,        // eventValue
-		100,      // eventMax
+		0,          // workValue
+		0,          // workXP
+		100,        // foodValue
+		100,        // energyValue
+		100,        // energyMaxValue
+		50,         // moodValue
+		0,          // charismaValue
+		100,        // moneyValue
+		0,          // fitnessValue
+		"Intern",   // job
+		true,       // working
+		true,       // routineShower
+		false,      // routineShave
+		true,       // routineBrushTeeth
+		0,          // routineBonus
+		"",         // eventName
+		0,          // eventValue
+		100,        // eventMax
+		"",         // choiceEventName
+		[]string{}, // choiceEventChoices
 	)
 }
 
@@ -300,6 +318,8 @@ func fromJSON(jsonData string) *AppState {
 	eventName := data["eventName"]
 	eventValue := data["eventValue"]
 	eventMax := data["eventMax"]
+	choiceEventName := data["choiceEventName"]
+	choiceEventChoices := data["choiceEventChoices"]
 	charismaValue := data["charisma"]
 	fitnessValue := data["fitness"]
 
@@ -322,6 +342,8 @@ func fromJSON(jsonData string) *AppState {
 		eventName.(string),
 		eventValue.(int),
 		eventMax.(int),
+		choiceEventName.(string),
+		choiceEventChoices.([]string),
 	)
 }
 
@@ -416,16 +438,8 @@ func (state *AppState) gameTick() {
 	}
 
 	// Handle events
-	for i, event := range state.Events {
-		if event.Done {
-			continue
-		}
-		if !event.Condition() {
-			continue
-		}
-		if event.Action() {
-			state.Events[i].Done = true
-		}
+	for i := range state.Events {
+		state.handleEvent(&state.Events[i], false)
 	}
 
 	// Handle current event
@@ -436,6 +450,26 @@ func (state *AppState) gameTick() {
 			return
 		}
 		state.EventValue.Set(eventValue + 1)
+	}
+}
+
+func (state *AppState) handleEvent(event *Event, ignoreCondition bool) {
+	if event.Done {
+		return
+	}
+	if !ignoreCondition && !event.Condition() {
+		return
+	}
+	if len(event.Choices) > 0 {
+		keys := make([]string, 0, len(event.Choices)) // Preallocate slice with capacity
+		for key := range event.Choices {
+			keys = append(keys, key)
+		}
+		state.ChoiceEventChoices.Set(keys)
+		state.ChoiceEventName.Set(event.Name)
+	}
+	if event.Action() {
+		event.Done = true
 	}
 }
 

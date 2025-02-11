@@ -93,5 +93,40 @@ func GetEvents(appstate *AppState) []Event {
 			},
 			nil,
 		),
+		NewEvent(
+			"Test Choice Event",
+			func() bool {
+				return appstate.Get("workxp").(int) == 300
+			},
+			func() bool {
+				return true
+			},
+			map[string]string{
+				"Choice 1": "Chose 1",
+				"Choice 2": "Chose 2",
+			},
+		),
+		NewEvent(
+			"Chose 1",
+			func() bool {
+				return false
+			},
+			func() bool {
+				appstate.Messages.Prepend("Event: You chose 1.")
+				return true
+			},
+			nil,
+		),
+		NewEvent(
+			"Chose 2",
+			func() bool {
+				return false
+			},
+			func() bool {
+				appstate.Messages.Prepend("Event: You chose 2.")
+				return true
+			},
+			nil,
+		),
 	}
 }
