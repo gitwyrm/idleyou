@@ -1,0 +1,7 @@
+=== Bullied at work
+? working == true
+? mood > 0
+? rand < 0.001
+! mood -= 10
+! print Event: You were bullied at work and feel a bit worse.
+> false

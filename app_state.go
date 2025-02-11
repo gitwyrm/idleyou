@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand/v2"
 	"os"
+	"strings"
 
 	"fyne.io/fyne/v2/data/binding"
 )
@@ -30,6 +32,180 @@ type AppState struct {
 	EventMax          binding.Int
 	Messages          binding.StringList
 	Events            []Event
+}
+
+// function so set app state variable via string name
+func (a *AppState) Set(variable string, value interface{}) {
+	switch strings.ToLower(variable) {
+	case "work":
+		a.Work.Set(value.(int))
+	case "workxp":
+		a.WorkXP.Set(value.(int))
+	case "food":
+		a.Food.Set(value.(int))
+	case "foodmax":
+		a.FoodMax.Set(value.(int))
+	case "energy":
+		a.Energy.Set(value.(int))
+	case "energymax":
+		a.EnergyMax.Set(value.(int))
+	case "mood":
+		a.Mood.Set(value.(int))
+	case "money":
+		a.Money.Set(value.(int))
+	case "charisma":
+		a.Charisma.Set(value.(int))
+	case "fitness":
+		a.Fitness.Set(value.(int))
+	case "job":
+		a.Job.Set(value.(string))
+	case "working":
+		a.Working.Set(value.(bool))
+	case "routineshower":
+		a.RoutineShower.Set(value.(bool))
+	case "routineshave":
+		a.RoutineShave.Set(value.(bool))
+	case "routinebrushteeth":
+		a.RoutineBrushTeeth.Set(value.(bool))
+	case "routinebonus":
+		a.RoutineBonus.Set(value.(int))
+	case "eventname":
+		a.EventName.Set(value.(string))
+	case "eventvalue":
+		a.EventValue.Set(value.(int))
+	case "eventmax":
+		a.EventMax.Set(value.(int))
+	case "messages":
+		a.Messages.Set(value.([]string))
+	case "events":
+		a.Events = value.([]Event)
+	}
+}
+
+// function to get app state variable via string name
+// to be used with script
+func (a *AppState) Get(variable string) interface{} {
+	switch strings.ToLower(variable) {
+	case "rand":
+		// special case that returns random number
+		return rand.Float64()
+	case "work":
+		v, err := a.Work.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "workxp":
+		v, err := a.WorkXP.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "food":
+		v, err := a.Food.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "foodmax":
+		v, err := a.FoodMax.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "energy":
+		v, err := a.Energy.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "energymax":
+		v, err := a.EnergyMax.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "mood":
+		v, err := a.Mood.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "money":
+		v, err := a.Money.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "charisma":
+		v, err := a.Charisma.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "fitness":
+		v, err := a.Fitness.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "job":
+		v, err := a.Job.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "working":
+		v, err := a.Working.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "routineshower":
+		v, err := a.RoutineShower.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "routineshave":
+		v, err := a.RoutineShave.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "routinebrushteeth":
+		v, err := a.RoutineBrushTeeth.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "routinebonus":
+		v, err := a.RoutineBonus.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "eventname":
+		v, err := a.EventName.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "eventvalue":
+		v, err := a.EventValue.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	case "eventmax":
+		v, err := a.EventMax.Get()
+		if err != nil {
+			return nil
+		}
+		return v
+	default:
+		return nil
+	}
 }
 
 func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, working bool, routineShower bool, routineShave bool, routineBrushTeeth bool, routineBonus int, eventName string, eventValue int, eventMax int) *AppState {
