@@ -6,6 +6,20 @@
 ! print Event: You were bullied at work and feel a bit worse.
 > false
 
+=== Dreaming of electric sheep
+? eventName == Sleeping
+? rand < 0.001
+! print You dreamed of electric sheep.
+! mood += 5
+> false
+
+=== Dreaming of a promotion
+? eventName == Sleeping
+? rand < 0.001
+! print You dreamed about getting promoted at work.
+! mood += 5
+> false
+
 === Promotion to Sales clerk
 ? workxp == 200
 ! job = Sales clerk
