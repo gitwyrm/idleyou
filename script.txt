@@ -1,3 +1,18 @@
+=== Choose a profession
+? true
+! paused = true
+- Retail -> Chose Retail
+> true
+
+=== Chose Retail
+? false
+! job = Sales clerk
+! salary = 100
+! paused = false
+! working = true
+! print Event: You now work in retail as a Sales clerk.
+> true
+
 === Bullied at work
 ? working == true
 ? mood > 0

@@ -24,6 +24,7 @@ type AppState struct {
 	Job                binding.String
 	Salary             binding.Int
 	Working            binding.Bool
+	Paused             binding.Bool
 	RoutineShower      binding.Bool
 	RoutineShave       binding.Bool
 	RoutineBrushTeeth  binding.Bool
@@ -92,6 +93,8 @@ func (a *AppState) Set(variable string, value interface{}) {
 		a.Salary.Set(value.(int))
 	case "working":
 		a.Working.Set(value.(bool))
+	case "paused":
+		a.Paused.Set(value.(bool))
 	case "routineshower":
 		a.RoutineShower.Set(value.(bool))
 	case "routineshave":
@@ -208,6 +211,12 @@ func (a *AppState) Get(variable string) interface{} {
 			return nil
 		}
 		return v
+	case "paused":
+		v, err := a.Paused.Get()
+		if err != nil {
+			return nil
+		}
+		return v
 	case "routineshower":
 		v, err := a.RoutineShower.Get()
 		if err != nil {
@@ -255,7 +264,7 @@ func (a *AppState) Get(variable string) interface{} {
 	}
 }
 
-func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, salary int, working bool, routineShower bool, routineShave bool, routineBrushTeeth bool, routineBonus int, eventName string, eventValue int, eventMax int, choiceEventName string, choiceEventChoices []string) *AppState {
+func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, salary int, working bool, paused bool, routineShower bool, routineShave bool, routineBrushTeeth bool, routineBonus int, eventName string, eventValue int, eventMax int, choiceEventName string, choiceEventChoices []string) *AppState {
 	var appstate AppState
 	appstate = AppState{
 		Work:               binding.NewInt(),
@@ -271,6 +280,7 @@ func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, mood
 		Job:                binding.NewString(),
 		Salary:             binding.NewInt(),
 		Working:            binding.NewBool(),
+		Paused:             binding.NewBool(),
 		RoutineShower:      binding.NewBool(),
 		RoutineShave:       binding.NewBool(),
 		RoutineBrushTeeth:  binding.NewBool(),
@@ -296,6 +306,7 @@ func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, mood
 	appstate.Job.Set(job)
 	appstate.Salary.Set(salary)
 	appstate.Working.Set(working)
+	appstate.Paused.Set(paused)
 	appstate.RoutineShower.Set(routineShower)
 	appstate.RoutineShave.Set(routineShave)
 	appstate.RoutineBrushTeeth.Set(routineBrushTeeth)
@@ -320,9 +331,10 @@ func NewAppStateWithDefaults() *AppState {
 		0,          // charismaValue
 		100,        // moneyValue
 		0,          // fitnessValue
-		"Intern",   // job
-		100,        // salary
-		true,       // working
+		"",         // job
+		0,          // salary
+		false,      // working
+		false,      // paused
 		true,       // routineShower
 		false,      // routineShave
 		true,       // routineBrushTeeth
@@ -351,6 +363,7 @@ func fromJSON(jsonData string) *AppState {
 	job := data["job"]
 	salary := data["salary"]
 	working := data["working"]
+	paused := data["paused"]
 	routineShower := data["routineShower"]
 	routineShave := data["routineShave"]
 	routineBrushTeeth := data["routineBrushTeeth"]
@@ -376,6 +389,7 @@ func fromJSON(jsonData string) *AppState {
 		job.(string),
 		salary.(int),
 		working.(bool),
+		paused.(bool),
 		routineShower.(bool),
 		routineShave.(bool),
 		routineBrushTeeth.(bool),
@@ -389,6 +403,16 @@ func fromJSON(jsonData string) *AppState {
 }
 
 func (state *AppState) gameTick() {
+	// Pause
+	paused, err := state.Paused.Get()
+	if err != nil {
+		fmt.Println("Error getting paused:", err)
+		return
+	}
+	if paused {
+		return
+	}
+
 	// Work
 	v, err := state.Work.Get()
 	if err != nil {
