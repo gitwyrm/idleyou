@@ -379,7 +379,7 @@ func parseCondition(line string) ScriptCondition {
 		}
 	}
 
-	if len(parts) != 3 {
+	if len(parts) < 3 {
 		panic(fmt.Sprintf("Invalid condition syntax: %s", line))
 	}
 
@@ -410,11 +410,11 @@ func parseCondition(line string) ScriptCondition {
 		}
 	}
 
-	// If not an int or float, keep it as a string
+	// If not an int, bool or float, keep it as a string
 	return ScriptCondition{
 		Variable: parts[0],
 		Operator: parts[1],
-		Value:    parts[2],
+		Value:    strings.Join(parts[2:], " "),
 	}
 }
 

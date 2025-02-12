@@ -123,6 +123,8 @@ func TestParseCondition(t *testing.T) {
 		{"energy > 20", ScriptCondition{"energy", ">", 20}},
 		{"status == happy", ScriptCondition{"status", "==", "happy"}},
 		{"isRaining == true", ScriptCondition{"isRaining", "==", true}},
+		{"routineShave == true", ScriptCondition{"routineShave", "==", true}},
+		{"eventName == Morning Routine", ScriptCondition{"eventName", "==", "Morning Routine"}},
 	}
 
 	for _, test := range tests {

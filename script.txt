@@ -20,6 +20,14 @@
 ! mood += 5
 > false
 
+=== Cut while shaving
+? eventName == Morning Routine
+? routineShave == true
+? rand < 0.9
+! print You cut yourself while shaving.
+! mood -= 5
+> false
+
 === Promotion to Sales clerk
 ? workxp == 200
 ! job = Sales clerk
