@@ -22,6 +22,7 @@ type AppState struct {
 	Charisma           binding.Int
 	Fitness            binding.Int
 	Job                binding.String
+	Salary             binding.Int
 	Working            binding.Bool
 	RoutineShower      binding.Bool
 	RoutineShave       binding.Bool
@@ -87,6 +88,8 @@ func (a *AppState) Set(variable string, value interface{}) {
 		a.Fitness.Set(v)
 	case "job":
 		a.Job.Set(value.(string))
+	case "salary":
+		a.Salary.Set(value.(int))
 	case "working":
 		a.Working.Set(value.(bool))
 	case "routineshower":
@@ -193,6 +196,12 @@ func (a *AppState) Get(variable string) interface{} {
 			return nil
 		}
 		return v
+	case "salary":
+		v, err := a.Salary.Get()
+		if err != nil {
+			return nil
+		}
+		return v
 	case "working":
 		v, err := a.Working.Get()
 		if err != nil {
@@ -246,7 +255,7 @@ func (a *AppState) Get(variable string) interface{} {
 	}
 }
 
-func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, working bool, routineShower bool, routineShave bool, routineBrushTeeth bool, routineBonus int, eventName string, eventValue int, eventMax int, choiceEventName string, choiceEventChoices []string) *AppState {
+func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, salary int, working bool, routineShower bool, routineShave bool, routineBrushTeeth bool, routineBonus int, eventName string, eventValue int, eventMax int, choiceEventName string, choiceEventChoices []string) *AppState {
 	var appstate AppState
 	appstate = AppState{
 		Work:               binding.NewInt(),
@@ -260,6 +269,7 @@ func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, mood
 		Charisma:           binding.NewInt(),
 		Fitness:            binding.NewInt(),
 		Job:                binding.NewString(),
+		Salary:             binding.NewInt(),
 		Working:            binding.NewBool(),
 		RoutineShower:      binding.NewBool(),
 		RoutineShave:       binding.NewBool(),
@@ -284,6 +294,7 @@ func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, mood
 	appstate.Charisma.Set(charismaValue)
 	appstate.Fitness.Set(fitnessValue)
 	appstate.Job.Set(job)
+	appstate.Salary.Set(salary)
 	appstate.Working.Set(working)
 	appstate.RoutineShower.Set(routineShower)
 	appstate.RoutineShave.Set(routineShave)
@@ -310,6 +321,7 @@ func NewAppStateWithDefaults() *AppState {
 		100,        // moneyValue
 		0,          // fitnessValue
 		"Intern",   // job
+		100,        // salary
 		true,       // working
 		true,       // routineShower
 		false,      // routineShave
@@ -337,6 +349,7 @@ func fromJSON(jsonData string) *AppState {
 	moodValue := data["mood"]
 	moneyValue := data["money"]
 	job := data["job"]
+	salary := data["salary"]
 	working := data["working"]
 	routineShower := data["routineShower"]
 	routineShave := data["routineShave"]
@@ -361,6 +374,7 @@ func fromJSON(jsonData string) *AppState {
 		charismaValue.(int),
 		fitnessValue.(int),
 		job.(string),
+		salary.(int),
 		working.(bool),
 		routineShower.(bool),
 		routineShave.(bool),
@@ -408,8 +422,13 @@ func (state *AppState) gameTick() {
 				fmt.Println("Error getting money:", err)
 				return
 			}
-			state.Money.Set(money + state.GetSalary())
-			state.Messages.Prepend(fmt.Sprintf("You were paid $%v for your work!", state.GetSalary()))
+			salary, err := state.Salary.Get()
+			if err != nil {
+				fmt.Println("Error getting salary:", err)
+				return
+			}
+			state.Money.Set(money + salary)
+			state.Messages.Prepend(fmt.Sprintf("You were paid $%v for your work!", salary))
 		}
 	}
 
@@ -592,22 +611,4 @@ func (state *AppState) GetAppearance() int {
 		total = 100
 	}
 	return total
-}
-
-func (state *AppState) GetSalary() int {
-	job, err := state.Job.Get()
-	if err != nil {
-		fmt.Println("Error getting job:", err)
-		return 0
-	}
-	switch job {
-	case "Intern":
-		return 100
-	case "Sales clerk":
-		return 200
-	case "Manager":
-		return 600
-	default:
-		return 0
-	}
 }
