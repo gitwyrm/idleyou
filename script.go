@@ -438,7 +438,7 @@ func parseAction(line string) ScriptAction {
 		}
 	}
 
-	// For other actions, try parsing the value as an int
+	// For other actions, try parsing the value as an int, float64, bool, or string
 	if len(parts) >= 3 {
 		if val, err := strconv.Atoi(parts[2]); err == nil {
 			return ScriptAction{
@@ -447,6 +447,23 @@ func parseAction(line string) ScriptAction {
 				Value:    val,
 			}
 		}
+
+		if val, err := strconv.ParseBool(parts[2]); err == nil {
+			return ScriptAction{
+				Variable: parts[0],
+				Operator: parts[1],
+				Value:    val,
+			}
+		}
+
+		if val, err := strconv.ParseFloat(parts[2], 64); err == nil {
+			return ScriptAction{
+				Variable: parts[0],
+				Operator: parts[1],
+				Value:    val,
+			}
+		}
+
 		// Otherwise, treat it as a string
 		return ScriptAction{
 			Variable: parts[0],
