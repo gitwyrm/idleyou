@@ -133,6 +133,9 @@ func (a *AppState) Get(variable string) interface{} {
 	case "rand":
 		// special case that returns random number
 		return rand.Float64()
+	case "appearance":
+		// special case that returns appearance
+		return a.GetAppearance()
 	case "work":
 		v, err := a.Work.Get()
 		if err != nil {
