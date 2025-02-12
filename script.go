@@ -290,6 +290,11 @@ func parseScript(script string) []ScriptEvent {
 			continue
 		}
 
+		// Skip comments
+		if strings.HasPrefix(line, "#") {
+			continue
+		}
+
 		switch {
 		case strings.HasPrefix(line, "==="): // Event name
 			if currentEvent != nil {
