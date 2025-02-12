@@ -37,10 +37,18 @@ type AppState struct {
 }
 
 // function so set app state variable via string name
+// for convenience, variable value will be kept within valid range, for example
+// between 0 and 100 for progress bar values
 func (a *AppState) Set(variable string, value interface{}) {
 	switch strings.ToLower(variable) {
 	case "work":
-		a.Work.Set(value.(int))
+		v := value.(int)
+		if v < 0 {
+			v = 0
+		} else if v > 100 {
+			v = 100
+		}
+		a.Work.Set(v)
 	case "workxp":
 		a.WorkXP.Set(value.(int))
 	case "food":
@@ -52,13 +60,31 @@ func (a *AppState) Set(variable string, value interface{}) {
 	case "energymax":
 		a.EnergyMax.Set(value.(int))
 	case "mood":
-		a.Mood.Set(value.(int))
+		v := value.(int)
+		if v < 0 {
+			v = 0
+		} else if v > 100 {
+			v = 100
+		}
+		a.Mood.Set(v)
 	case "money":
 		a.Money.Set(value.(int))
 	case "charisma":
-		a.Charisma.Set(value.(int))
+		v := value.(int)
+		if v < 0 {
+			v = 0
+		} else if v > 100 {
+			v = 100
+		}
+		a.Charisma.Set(v)
 	case "fitness":
-		a.Fitness.Set(value.(int))
+		v := value.(int)
+		if v < 0 {
+			v = 0
+		} else if v > 100 {
+			v = 100
+		}
+		a.Fitness.Set(v)
 	case "job":
 		a.Job.Set(value.(string))
 	case "working":

@@ -23,7 +23,7 @@
 === Cut while shaving
 ? eventName == Morning Routine
 ? routineShave == true
-? rand < 0.9
+? rand < 0.001
 ! print You cut yourself while shaving.
 ! mood -= 5
 > false
