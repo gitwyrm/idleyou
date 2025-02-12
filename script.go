@@ -217,7 +217,7 @@ func scriptActionToFn(state *AppState, action ScriptAction, isMultipleChoice boo
 	if action.Operator == "" && action.Variable == "print" {
 		return func() {
 			if isMultipleChoice {
-				// TODO: Display message above multiple-choice options
+				state.ChoiceEventText.Set(action.Value.(string))
 			} else {
 				state.Messages.Prepend(action.Value.(string))
 			}

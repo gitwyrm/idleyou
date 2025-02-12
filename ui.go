@@ -86,6 +86,7 @@ func setupUI(appstate *AppState) *fyne.Container {
 	choiceContainer := container.New(
 		layout.NewVBoxLayout(),
 		widget.NewLabelWithData(appstate.ChoiceEventName),
+		widget.NewLabelWithData(appstate.ChoiceEventText),
 		choiceButtons,
 	)
 

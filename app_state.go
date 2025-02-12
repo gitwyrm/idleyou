@@ -33,6 +33,7 @@ type AppState struct {
 	EventValue         binding.Int
 	EventMax           binding.Int
 	ChoiceEventName    binding.String
+	ChoiceEventText    binding.String
 	ChoiceEventChoices binding.StringList
 	Messages           binding.StringList
 	Events             []Event
@@ -267,7 +268,7 @@ func (a *AppState) Get(variable string) interface{} {
 	}
 }
 
-func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, salary int, working bool, paused bool, routineShower bool, routineShave bool, routineBrushTeeth bool, routineBonus int, eventName string, eventValue int, eventMax int, choiceEventName string, choiceEventChoices []string) *AppState {
+func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, salary int, working bool, paused bool, routineShower bool, routineShave bool, routineBrushTeeth bool, routineBonus int, eventName string, eventValue int, eventMax int, choiceEventName string, choiceEventText string, choiceEventChoices []string) *AppState {
 	var appstate AppState
 	appstate = AppState{
 		Work:               binding.NewInt(),
@@ -292,6 +293,7 @@ func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, mood
 		EventValue:         binding.NewInt(),
 		EventMax:           binding.NewInt(),
 		ChoiceEventName:    binding.NewString(),
+		ChoiceEventText:    binding.NewString(),
 		ChoiceEventChoices: binding.NewStringList(),
 		Messages:           binding.NewStringList(),
 		Events:             []Event{},
@@ -318,6 +320,7 @@ func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, mood
 	appstate.EventValue.Set(eventValue)
 	appstate.EventMax.Set(eventMax)
 	appstate.ChoiceEventName.Set(choiceEventName)
+	appstate.ChoiceEventText.Set(choiceEventText)
 	appstate.ChoiceEventChoices.Set(choiceEventChoices)
 	appstate.Events = GetEvents(&appstate)
 	return &appstate
@@ -346,6 +349,7 @@ func NewAppStateWithDefaults() *AppState {
 		0,          // eventValue
 		100,        // eventMax
 		"",         // choiceEventName
+		"",         // choiceEventText
 		[]string{}, // choiceEventChoices
 	)
 }
@@ -375,6 +379,7 @@ func fromJSON(jsonData string) *AppState {
 	eventValue := data["eventValue"]
 	eventMax := data["eventMax"]
 	choiceEventName := data["choiceEventName"]
+	choiceEventText := data["choiceEventText"]
 	choiceEventChoices := data["choiceEventChoices"]
 	charismaValue := data["charisma"]
 	fitnessValue := data["fitness"]
@@ -401,6 +406,7 @@ func fromJSON(jsonData string) *AppState {
 		eventValue.(int),
 		eventMax.(int),
 		choiceEventName.(string),
+		choiceEventText.(string),
 		choiceEventChoices.([]string),
 	)
 }
