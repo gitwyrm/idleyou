@@ -14,18 +14,19 @@ func TestGetVariableType(t *testing.T) {
 		expectedInt    bool
 		expectedFloat  bool
 		expectedString bool
+		expectedBool   bool
 	}{
-		{10, true, false, false},
-		{3.14, false, true, false},
-		{"hello", false, false, true},
-		{true, false, false, false}, // Booleans should return all false
+		{10, true, false, false, false},
+		{3.14, false, true, false, false},
+		{"hello", false, false, true, false},
+		{true, false, false, false, true}, // Booleans should return all false
 	}
 
 	for _, test := range tests {
-		isInt, isFloat, isString := getVariableType(test.input)
-		if isInt != test.expectedInt || isFloat != test.expectedFloat || isString != test.expectedString {
-			t.Errorf("getVariableType(%v) = (%v, %v, %v), expected (%v, %v, %v)",
-				test.input, isInt, isFloat, isString, test.expectedInt, test.expectedFloat, test.expectedString)
+		isInt, isFloat, isString, isBool := getVariableType(test.input)
+		if isInt != test.expectedInt || isFloat != test.expectedFloat || isString != test.expectedString || isBool != test.expectedBool {
+			t.Errorf("getVariableType(%v) = (%v, %v, %v, %v), expected (%v, %v, %v, %v)",
+				test.input, isInt, isFloat, isString, isBool, test.expectedInt, test.expectedFloat, test.expectedString, test.expectedBool)
 		}
 	}
 }
@@ -36,17 +37,19 @@ func TestGetVariableValue(t *testing.T) {
 		expectedInt    int
 		expectedFloat  float64
 		expectedString string
+		expectedBool   bool
 	}{
-		{10, 10, 0, ""},
-		{3.14, 0, 3.14, ""},
-		{"hello", 0, 0, "hello"},
+		{10, 10, 0, "", false},
+		{3.14, 0, 3.14, "", false},
+		{"hello", 0, 0, "hello", false},
+		{true, 0, 0, "", true},
 	}
 
 	for _, test := range tests {
-		intVal, floatVal, strVal := getVariableValue(test.input)
-		if intVal != test.expectedInt || floatVal != test.expectedFloat || strVal != test.expectedString {
-			t.Errorf("getVariableValue(%v) = (%d, %f, %s), expected (%d, %f, %s)",
-				test.input, intVal, floatVal, strVal, test.expectedInt, test.expectedFloat, test.expectedString)
+		intVal, floatVal, strVal, boolVal := getVariableValue(test.input)
+		if intVal != test.expectedInt || floatVal != test.expectedFloat || strVal != test.expectedString || boolVal != test.expectedBool {
+			t.Errorf("getVariableValue(%v) = (%d, %f, %s, %t), expected (%d, %f, %s, %t)",
+				test.input, intVal, floatVal, strVal, boolVal, test.expectedInt, test.expectedFloat, test.expectedString, test.expectedBool)
 		}
 	}
 }
@@ -119,7 +122,7 @@ func TestParseCondition(t *testing.T) {
 		{"mood <= 10", ScriptCondition{"mood", "<=", 10}},
 		{"energy > 20", ScriptCondition{"energy", ">", 20}},
 		{"status == happy", ScriptCondition{"status", "==", "happy"}},
-		{"isRaining == true", ScriptCondition{"isRaining", "==", "true"}},
+		{"isRaining == true", ScriptCondition{"isRaining", "==", true}},
 	}
 
 	for _, test := range tests {
