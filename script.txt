@@ -1,3 +1,5 @@
+### --- Profession selection --- ###
+
 === Choose a profession
 ? true
 ! paused = true
@@ -13,6 +15,8 @@
 ! print Event: You now work in retail as a Sales clerk.
 > true
 
+### --- Work Events --- ###
+
 === Bullied at work
 ? working == true
 ? mood > 0
@@ -20,6 +24,8 @@
 ! mood -= 10
 ! print Event: You were bullied at work and feel a bit worse.
 > false
+
+### --- Dream Events --- ###
 
 === Dreaming of electric sheep
 ? eventName == Sleeping
@@ -35,6 +41,8 @@
 ! mood += 5
 > false
 
+### --- Morning Routine Events --- ###
+
 === Cut while shaving
 ? eventName == Morning Routine
 ? routineShave == true
@@ -42,6 +50,8 @@
 ! print You cut yourself while shaving.
 ! mood -= 5
 > false
+
+### --- Retail Work Events --- ###
 
 === Promotion to Manager
 ? workxp == 1000
