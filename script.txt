@@ -43,13 +43,6 @@
 ! mood -= 5
 > false
 
-=== Promotion to Sales clerk
-? workxp == 200
-! job = Sales clerk
-! salary = 200
-! print Event: You got promoted to Sales clerk!
-> true
-
 === Promotion to Manager
 ? workxp == 1000
 ! job = Manager
