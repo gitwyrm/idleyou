@@ -187,14 +187,20 @@ func setupUI(appstate *AppState) *fyne.Container {
 		}))
 
 	var messageList *widget.List
-	messageList = widget.NewListWithData(appstate.Messages,
+	messageList = widget.NewList(appstate.Messages.Length,
 		func() fyne.CanvasObject {
 			label := widget.NewLabel("template")
 			label.Wrapping = fyne.TextWrapWord
 			return label
 		},
-		func(i binding.DataItem, o fyne.CanvasObject) {
-			text, err := i.(binding.String).Get()
+		func(i int, o fyne.CanvasObject) {
+			item, err := appstate.Messages.GetItem(i)
+			if err != nil {
+				fmt.Println("Error getting message:", err)
+				return
+			}
+
+			text, err := item.(binding.String).Get()
 			if err != nil {
 				fmt.Println("Error getting message:", err)
 				return
@@ -210,7 +216,7 @@ func setupUI(appstate *AppState) *fyne.Container {
 			}
 
 			label.SetText(text)
-			messageList.SetItemHeight(0, label.Size().Height)
+			messageList.SetItemHeight(i, label.MinSize().Height)
 		})
 
 	playerInfo := container.New(
