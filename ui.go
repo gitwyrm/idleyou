@@ -3,13 +3,18 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/storage"
 	"fyne.io/fyne/v2/widget"
+	fynex "fyne.io/x/fyne/widget"
 )
 
 func progressBarForBinding(b binding.Int, max binding.Int) *widget.ProgressBar {
@@ -189,34 +194,51 @@ func setupUI(appstate *AppState) *fyne.Container {
 	var messageList *widget.List
 	messageList = widget.NewList(appstate.Messages.Length,
 		func() fyne.CanvasObject {
-			label := widget.NewLabel("template")
-			label.Wrapping = fyne.TextWrapWord
-			return label
+			// Container to hold either an image or a label
+			return container.NewStack()
 		},
 		func(i int, o fyne.CanvasObject) {
-			item, err := appstate.Messages.GetItem(i)
-			if err != nil {
-				fmt.Println("Error getting message:", err)
-				return
-			}
+			// Get message content
+			text, _ := appstate.Messages.GetValue(i)
 
-			text, err := item.(binding.String).Get()
-			if err != nil {
-				fmt.Println("Error getting message:", err)
-				return
-			}
+			// Get the container
+			content := o.(*fyne.Container)
 
-			label := o.(*widget.Label)
+			// Clear previous content
+			content.Objects = nil
 
-			if strings.HasPrefix(text, "Event: ") {
-				text = strings.TrimPrefix(text, "Event: ")
-				label.TextStyle = fyne.TextStyle{Bold: true}
+			// Check if it's an image or text
+			if strings.HasPrefix(text, "Image: ") {
+				// Get the user's home directory
+				homeDir, err := os.UserHomeDir()
+				if err != nil {
+					log.Fatal("Could not determine user home directory:", err)
+				}
+				imagePath := filepath.Join(homeDir, "Documents", "IdleYou", "images", strings.TrimPrefix(text, "Image: "))
+				if strings.HasSuffix(imagePath, ".gif") {
+					gif, err := fynex.NewAnimatedGif(storage.NewFileURI(imagePath))
+					if err != nil {
+						log.Fatal("Could not load animated GIF:", err)
+					}
+					content.Add(gif)
+					gif.Start()
+				} else {
+					img := canvas.NewImageFromFile(imagePath)
+					img.FillMode = canvas.ImageFillContain
+					content.Add(img)
+				}
+
+				messageList.SetItemHeight(i, 200) // Adjust height for images
 			} else {
-				label.TextStyle = fyne.TextStyle{}
+				label := widget.NewLabel(text)
+				label.Wrapping = fyne.TextWrapWord
+				if strings.HasPrefix(text, "Event: ") {
+					label.TextStyle = fyne.TextStyle{Bold: true}
+					label.SetText(strings.TrimPrefix(text, "Event: "))
+				}
+				content.Add(label)
+				messageList.SetItemHeight(i, label.MinSize().Height)
 			}
-
-			label.SetText(text)
-			messageList.SetItemHeight(i, label.MinSize().Height)
 		})
 
 	playerInfo := container.New(

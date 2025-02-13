@@ -223,6 +223,18 @@ func scriptActionToFn(state *AppState, action ScriptAction, isMultipleChoice boo
 			}
 		}
 	}
+
+	// Special case for show commands
+	if action.Operator == "" && action.Variable == "show" {
+		return func() {
+			if isMultipleChoice {
+				state.ChoiceEventText.Set(action.Value.(string))
+			} else {
+				state.Messages.Prepend("Image: " + action.Value.(string))
+			}
+		}
+	}
+
 	// For other operations, use modifyState
 	return func() {
 		modifyState(state, action.Variable, action.Operator, action.Value)
@@ -438,6 +450,15 @@ func parseAction(line string) ScriptAction {
 	if parts[0] == "print" {
 		return ScriptAction{
 			Variable: "print",
+			Operator: "",
+			Value:    strings.Join(parts[1:], " "),
+		}
+	}
+
+	// Special handling for show commands
+	if parts[0] == "show" {
+		return ScriptAction{
+			Variable: "show",
 			Operator: "",
 			Value:    strings.Join(parts[1:], " "),
 		}

@@ -27,7 +27,7 @@ func readScript() string {
 	}
 
 	// Construct the path to the user's Documents folder
-	scriptPath := filepath.Join(homeDir, "Documents", "script.txt")
+	scriptPath := filepath.Join(homeDir, "Documents", "IdleYou", "script.txt")
 
 	// If a script.txt file exists in the user's documents directory, use that
 	if _, err := os.Stat(scriptPath); err == nil {
