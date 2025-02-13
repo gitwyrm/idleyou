@@ -186,9 +186,12 @@ func setupUI(appstate *AppState) *fyne.Container {
 			NewEventHandler(appstate).WatchTV()
 		}))
 
-	messageList := widget.NewListWithData(appstate.Messages,
+	var messageList *widget.List
+	messageList = widget.NewListWithData(appstate.Messages,
 		func() fyne.CanvasObject {
-			return widget.NewLabel("template")
+			label := widget.NewLabel("template")
+			label.Wrapping = fyne.TextWrapWord
+			return label
 		},
 		func(i binding.DataItem, o fyne.CanvasObject) {
 			text, err := i.(binding.String).Get()
@@ -197,14 +200,17 @@ func setupUI(appstate *AppState) *fyne.Container {
 				return
 			}
 
+			label := o.(*widget.Label)
+
 			if strings.HasPrefix(text, "Event: ") {
 				text = strings.TrimPrefix(text, "Event: ")
-				o.(*widget.Label).TextStyle = fyne.TextStyle{Bold: true}
+				label.TextStyle = fyne.TextStyle{Bold: true}
 			} else {
-				o.(*widget.Label).TextStyle = fyne.TextStyle{}
+				label.TextStyle = fyne.TextStyle{}
 			}
 
-			o.(*widget.Label).SetText(text)
+			label.SetText(text)
+			messageList.SetItemHeight(0, label.Size().Height)
 		})
 
 	playerInfo := container.New(
@@ -212,20 +218,31 @@ func setupUI(appstate *AppState) *fyne.Container {
 		widget.NewLabel("Job:"), widget.NewLabelWithData(appstate.Job),
 		widget.NewLabel("Job experience:"), widget.NewLabelWithData(binding.IntToString(appstate.WorkXP)),
 		widget.NewLabel("Money:"), widget.NewLabelWithData(binding.IntToString(appstate.Money)),
-		widget.NewLabel("Morning routine"), container.NewHBox(
+	)
+
+	leftLabel := widget.NewLabel("Character stats")
+	leftLabel.TextStyle.Bold = true
+
+	rightLabel := widget.NewLabel("Toggles")
+	rightLabel.TextStyle.Bold = true
+
+	centerLabel := widget.NewLabel("Interactions")
+	centerLabel.TextStyle.Bold = true
+
+	toggles := container.New(
+		layout.NewFormLayout(),
+		widget.NewLabel("Morning routine"),
+		container.NewHBox(
 			widget.NewCheckWithData("Shower", appstate.RoutineShower),
 			widget.NewCheckWithData("Shave", appstate.RoutineShave),
 			widget.NewCheckWithData("Brush teeth", appstate.RoutineBrushTeeth),
-		),
-	)
+		))
 
-	sidePanel := container.New(layout.NewVBoxLayout(), playerInfo, eventContainer)
+	rightSide := container.New(layout.NewVBoxLayout(), rightLabel, toggles)
 
-	// Buttons and progress bars
-	column := container.New(layout.NewVBoxLayout(), progressContainer, buttonRow, saveButton)
+	leftSide := container.New(layout.NewVBoxLayout(), container.NewHBox(leftLabel, widget.NewLabel("\t\t\t\t\t")), progressContainer, playerInfo, saveButton)
 
-	content := container.New(layout.NewGridLayout(3), column, sidePanel, choiceContainer)
+	center := container.NewBorder(container.New(layout.NewVBoxLayout(), centerLabel, choiceContainer, buttonRow, eventContainer), nil, nil, nil, messageList)
 
-	// Column with buttons and progress at the top, messages at the center so they fill the space
-	return container.NewBorder(content, nil, nil, nil, messageList)
+	return container.NewBorder(nil, nil, leftSide, rightSide, center)
 }
