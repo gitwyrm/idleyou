@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/rand/v2"
 	"os"
 	"strings"
@@ -59,7 +60,18 @@ func (a *AppState) Set(variable string, value interface{}) {
 	case "foodmax":
 		a.FoodMax.Set(value.(int))
 	case "energy":
-		a.Energy.Set(value.(int))
+		energyMax, err := a.EnergyMax.Get()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		v := value.(int)
+		if v < 0 {
+			v = 0
+		} else if v > energyMax {
+			v = energyMax
+		}
+		a.Energy.Set(v)
 	case "energymax":
 		a.EnergyMax.Set(value.(int))
 	case "mood":
