@@ -159,3 +159,17 @@ This creates three events, the first one is a multiple choice event, the other t
 The first event pauses the game, displays a message to the user and shows two buttons. Clicking on them executes one of the other two events, which print a message to the message log and unpause the game again.
 
 You can of course also link to another multiple-choice event and have a deep decision tree.
+
+There is one other event type, a progress event. It's an event that shows a progress bar and only executes it's actions (`!`) once the progress has reached it's maximum value (`%`). Sleeping, Morning Routine and Watching TV are all progress events.
+
+Here is how you can create one yourself:
+
+```
+=== My Progress Event
+? true
+% 50
+! print Done!
+> true
+```
+
+This shows a progress bar with the label "My Progress Event" and finishes after 50 ticks, then adds "Done!" to the message list.
