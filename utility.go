@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -62,7 +63,20 @@ func readScript() string {
 
 	// If the scripts folder has script files, use them
 	script, err := ConcatenateTxtFiles(scriptPath, func(text string, dir string) string {
-		return text
+		// Replace all lines starting with "=== " with "=== dir/".
+		// This keeps mods from overriding other events by prefixing event names
+		// with the name of the mod, which is the directory name.
+		//
+		// Doesn't prefix if it's the root scripts directory.
+		var builder strings.Builder
+		for _, line := range strings.Split(text, "\n") {
+			if strings.HasPrefix(line, "=== ") && dir != "scripts" {
+				line = fmt.Sprintf("=== %s/%s", dir, line[4:])
+			}
+			builder.WriteString(line)
+			builder.WriteString("\n")
+		}
+		return builder.String()
 	})
 	if err != nil {
 		log.Printf("Error reading script files: %v\n", err)
