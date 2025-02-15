@@ -64,6 +64,7 @@ func readScript() string {
 	// If the scripts folder has script files, use them
 	script, err := ConcatenateTxtFiles(scriptPath, func(text string, dir string) string {
 		// Replace all lines starting with "=== " with "=== dir/".
+		// Replace all lines starting with "! show " with "! show dir/".
 		// This keeps mods from overriding other events by prefixing event names
 		// with the name of the mod, which is the directory name.
 		//
@@ -72,6 +73,9 @@ func readScript() string {
 		for _, line := range strings.Split(text, "\n") {
 			if strings.HasPrefix(line, "=== ") && dir != "scripts" {
 				line = fmt.Sprintf("=== %s/%s", dir, line[4:])
+			}
+			if strings.HasPrefix(line, "! show ") && dir != "scripts" {
+				line = fmt.Sprintf("! show %s/%s", dir, line[7:])
 			}
 			builder.WriteString(line)
 			builder.WriteString("\n")
