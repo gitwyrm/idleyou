@@ -43,6 +43,7 @@ type ScriptEvent struct {
 	ScriptConditions []ScriptCondition
 	ScriptActions    []ScriptAction
 	Choices          map[string]string
+	ProgressMax      int
 	Return           bool
 }
 
@@ -197,6 +198,30 @@ func scriptEventToEvent(state *AppState, scriptEvent ScriptEvent) Event {
 			return true
 		},
 		func() bool {
+			// if it is a progress event
+			if scriptEvent.ProgressMax > 0 {
+				// if no other event is running
+				if state.Get("eventName") == "" {
+					NewEventHandler(state).newHandlerWith(
+						scriptEvent.Name,
+						"",
+						scriptEvent.ProgressMax,
+						func() {
+							for _, action := range actions {
+								action()
+							}
+						},
+						nil,
+					)
+					return scriptEvent.Return
+				} else {
+					// an event is already running, so return false so that the event
+					// can be triggered again even if it is a one off event
+					return false
+				}
+			}
+
+			// if it's not a progress event
 			for _, action := range actions {
 				action()
 			}
@@ -325,6 +350,10 @@ func parseScript(script string) []ScriptEvent {
 				currentEvent.ScriptConditions = append(currentEvent.ScriptConditions, condition)
 			}
 
+		case strings.HasPrefix(line, "%"): // ProgressMax
+			progressMax := parseProgressMax(line[1:])
+			currentEvent.ProgressMax = progressMax
+
 		case strings.HasPrefix(line, "!"): // Action
 			if currentEvent != nil {
 				action := parseAction(line[1:])
@@ -358,6 +387,15 @@ func parseScript(script string) []ScriptEvent {
 	}
 
 	return events
+}
+
+func parseProgressMax(s string) int {
+	max, err := strconv.Atoi(strings.TrimSpace(s))
+	if err != nil {
+		log.Printf("Error parsing ScriptEvent ProgressMax: %s\n", s)
+		return 0
+	}
+	return max
 }
 
 // parseChoice parses a choice line in the format: key -> value

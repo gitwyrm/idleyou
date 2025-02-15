@@ -39,7 +39,9 @@ func (e *EventHandler) newHandlerWith(eventName string, doneMessage string, even
 			e.state.EventValue.RemoveListener(listener)
 			e.state.EventName.Set("")
 			e.state.Working.Set(true)
-			e.state.Messages.Prepend(doneMessage)
+			if doneMessage != "" {
+				e.state.Messages.Prepend(doneMessage)
+			}
 			if onDone != nil {
 				onDone()
 			}
