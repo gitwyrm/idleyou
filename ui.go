@@ -243,6 +243,7 @@ func setupUI(appstate *AppState) *fyne.Container {
 
 	playerInfo := container.New(
 		layout.NewFormLayout(),
+		widget.NewLabel("Ticks:"), widget.NewLabelWithData(binding.IntToString(appstate.Ticks)),
 		widget.NewLabel("Job:"), widget.NewLabelWithData(appstate.Job),
 		widget.NewLabel("Job experience:"), widget.NewLabelWithData(binding.IntToString(appstate.WorkXP)),
 		widget.NewLabel("Money:"), widget.NewLabelWithData(binding.IntToString(appstate.Money)),

@@ -12,6 +12,7 @@ import (
 )
 
 type AppState struct {
+	Ticks              binding.Int
 	Work               binding.Int
 	WorkXP             binding.Int
 	Food               binding.Int
@@ -45,6 +46,8 @@ type AppState struct {
 // between 0 and 100 for progress bar values
 func (a *AppState) Set(variable string, value interface{}) {
 	switch strings.ToLower(variable) {
+	case "ticks":
+		a.Ticks.Set(value.(int))
 	case "work":
 		v := value.(int)
 		if v < 0 {
@@ -149,6 +152,12 @@ func (a *AppState) Get(variable string) interface{} {
 	case "appearance":
 		// special case that returns appearance
 		return a.GetAppearance()
+	case "ticks":
+		v, err := a.Ticks.Get()
+		if err != nil {
+			return nil
+		}
+		return v
 	case "work":
 		v, err := a.Work.Get()
 		if err != nil {
@@ -280,9 +289,10 @@ func (a *AppState) Get(variable string) interface{} {
 	}
 }
 
-func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, salary int, working bool, paused bool, routineShower bool, routineShave bool, routineBrushTeeth bool, routineBonus int, eventName string, eventValue int, eventMax int, choiceEventName string, choiceEventText string, choiceEventChoices []string) *AppState {
+func NewAppState(ticksValue, workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, salary int, working bool, paused bool, routineShower bool, routineShave bool, routineBrushTeeth bool, routineBonus int, eventName string, eventValue int, eventMax int, choiceEventName string, choiceEventText string, choiceEventChoices []string) *AppState {
 	var appstate AppState
 	appstate = AppState{
+		Ticks:              binding.NewInt(),
 		Work:               binding.NewInt(),
 		WorkXP:             binding.NewInt(),
 		Food:               binding.NewInt(),
@@ -310,6 +320,7 @@ func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, mood
 		Messages:           binding.NewStringList(),
 		Events:             []Event{},
 	}
+	appstate.Ticks.Set(ticksValue)
 	appstate.Work.Set(workValue)
 	appstate.WorkXP.Set(workXP)
 	appstate.Food.Set(foodValue)
@@ -340,6 +351,7 @@ func NewAppState(workValue, workXP, foodValue, energyValue, energyMaxValue, mood
 
 func NewAppStateWithDefaults() *AppState {
 	return NewAppState(
+		0,          // ticksValue
 		0,          // workValue
 		0,          // workXP
 		100,        // foodValue
@@ -372,6 +384,7 @@ func fromJSON(jsonData string) *AppState {
 	if err != nil {
 		return nil
 	}
+	ticksValue := data["ticks"]
 	workValue := data["work"]
 	workXP := data["workXP"]
 	foodValue := data["food"]
@@ -397,6 +410,7 @@ func fromJSON(jsonData string) *AppState {
 	fitnessValue := data["fitness"]
 
 	return NewAppState(
+		ticksValue.(int),
 		workValue.(int),
 		workXP.(int),
 		foodValue.(int),
@@ -433,6 +447,15 @@ func (state *AppState) gameTick() {
 	if paused {
 		return
 	}
+
+	// Increment ticks
+	ticksValue, err := state.Ticks.Get()
+	if err != nil {
+		fmt.Println("Error getting ticks:", err)
+		return
+	}
+	ticksValue++
+	state.Ticks.Set(ticksValue)
 
 	// Work
 	v, err := state.Work.Get()
