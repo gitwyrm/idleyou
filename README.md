@@ -2,6 +2,10 @@
 
 A simple IDLE game written in Go, using Fyne for the GUI.
 
+**This is currently in early development, so don't expect the game to be fun yet.**
+
+It is mostly a learning project right now, but might turn into an actual game if everything works out.
+
 ## How to play
 
 - You need food to survive. (If food hits 0 it's GAME OVER)
