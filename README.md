@@ -2,9 +2,11 @@
 
 A simple IDLE game written in Go, using Fyne for the GUI.
 
-**This is currently in early development, so don't expect the game to be fun yet.**
+**This is currently in early development, so don't expect this to be more than a tech demo.**
 
-It is mostly a learning project right now, but might turn into an actual game if everything works out.
+It is mostly a learning project right now with next to no content, but might turn into an actual game. You can however already use it to create your own games or write mods for the official IdleYou game.
+
+The code is licensed under the Mozilla Public License 2.0 (MPL-2.0), which in layman's terms (meaning, read the actual license; nothing I write here overrides what the license states) means that you only need to make modifications to the original source files open source, but you can keep your game closed source and sell it if you prefer.
 
 ## How to play
 
@@ -16,9 +18,12 @@ It is mostly a learning project right now, but might turn into an actual game if
 - To have more energy, you need to be fit.
 - To get more money, you need a better job.
 - To get a better job, you need to gain work experience and have a good appearance.
-- To get a better appearance, you need to be fit, charismatic, clean and in a good mood (everyone looks better with a smile).
+- To get a better appearance, you need to be fit, charismatic, clean and in a good mood.
+- Events will happen at times, good or bad, sometimes they even offer you a choice.
 
 ## Running
+
+Only tested on macOS right now, but should work on all platforms.
 
 ```bash
 go run .
@@ -50,9 +55,9 @@ fyne package -os linux
 
 The game uses a simple scripting language for events that happen during the game. You can easily change the script by running the game once and then opening the `~/Documents/IdleYou/scripts/script.txt` file in a text editor.
 
-You can also easily create mods by creating a new folder inside of the scripts directory and adding one or more .txt files in there with new events.
+You can also easily create mods by creating a new folder inside of the scripts directory and adding one or more .txt files in there with new events. If you want to add images, create another directory (with the same name) in the images directory and put your images there.
 
-The event names get automatically prefixed with the folder name when the script files are read by the game, so you don't need to worry about your mod's events interfering with other mods.
+The event names get automatically prefixed with the folder name when the script files are read by the game, so you don't need to worry about your mod's events interfering with other mods. Image paths are also automatically prefixed with the mod name, so you don't need to specify the mod's folder and can just use the file name in the script.
 
 ### Syntax
 
@@ -76,11 +81,14 @@ The line starting with `#` is a comment and gets ignored. The other lines create
 
 The event conditions (`?` lines) are checked on each game tick, which is about a tenth of a second at the default game speed. So there are 10 ticks happening per second where event conditions are checked.
 
-The print command prints a message to the message log and the show command shows a picture (can also be an animated GIF). The pictures are stored in `~/Documents/IdleYou/images` and you only need to give the show command the path to the picture from that folder. So if it is directly in the images folder, the name of the image file is enough. If it is inside a subfolder, like `misc`, you would write `! show misc/GoodImage.png`
+The print command prints a message to the message log.
+
+The show command shows a picture (can also be an animated GIF). The pictures are stored in `~/Documents/IdleYou/images` and you only need to give the show command the name of the picture file, not the whole path.
 
 Conditions check variables for their value, possible variables are:
 
 ```
+Ticks
 Work
 WorkXP
 Food
@@ -170,10 +178,18 @@ Here is how you can create one yourself:
 
 ```
 === My Progress Event
-? true
+? ticks == 50
 % 50
 ! print Done!
 > true
 ```
 
-This shows a progress bar with the label "My Progress Event" and finishes after 50 ticks, then adds "Done!" to the message list.
+This event fires when the game has run for 50 ticks, shows a progress bar with the label "My Progress Event" and finishes after 50 ticks (so at tick 100), then adds "Done!" to the message list.
+
+## Creating a mod
+
+Create a new folder for your mod in `~/Documents/IdleYou/scripts`, lets' call it `firefighter` since our example mod adds a firefighter job to the game.
+
+In that folder `~/Documents/IdleYou/scripts/firefighter`, create one or more .txt files that contain your mod's script. The files get all concatenated together, so you can split everything up in as many files as you like.
+
+If your mod has images, put them in `~/Documents/IdleYou/images/firefighter`. When you show an image with `! show image.png`, you don't need to add `firefighter` to the path, that is automatically added and inferred from the name of the folder. That's why both folders, the one inside images and the one inside scripts, should use the same name, `firefighter`.
