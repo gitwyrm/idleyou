@@ -77,5 +77,11 @@ func readScript() string {
 		log.Fatal("Error reading embedded script:", err)
 	}
 
+	// and write it to the scripts folder so it can be modified by the user
+	err = os.WriteFile(filepath.Join(scriptPath, "script.txt"), data, 0644)
+	if err != nil {
+		log.Fatal("Error writing script file:", err)
+	}
+
 	return string(data)
 }
