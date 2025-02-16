@@ -49,9 +49,15 @@ type ScriptEvent struct {
 	Name             string
 	ScriptConditions []ScriptCondition
 	ScriptActions    []ScriptAction
-	Choices          map[string]string
+	Choices          map[string]Choice
 	ProgressMax      int
 	Return           bool
+}
+
+type Choice struct {
+	ButtonText string
+	EventName  string
+	Conditions []ScriptCondition
 }
 
 // -----------------------------
@@ -348,7 +354,7 @@ func parseScript(script string) []ScriptEvent {
 				Name:             strings.TrimSpace(line[3:]),
 				ScriptConditions: []ScriptCondition{},
 				ScriptActions:    []ScriptAction{},
-				Choices:          map[string]string{},
+				Choices:          map[string]Choice{},
 			}
 
 		case strings.HasPrefix(line, "?"): // Condition
@@ -369,8 +375,12 @@ func parseScript(script string) []ScriptEvent {
 
 		case strings.HasPrefix(line, "-"): // Choice
 			if currentEvent != nil {
-				key, value := parseChoice(line[1:])
-				currentEvent.Choices[key] = value
+				key, value, conditions := parseChoice(line[1:])
+				currentEvent.Choices[key] = Choice{
+					ButtonText: key,
+					EventName:  value,
+					Conditions: conditions,
+				}
 			}
 
 		case strings.HasPrefix(line, ">"):
@@ -405,15 +415,34 @@ func parseProgressMax(s string) int {
 	return max
 }
 
-// parseChoice parses a choice line in the format: key -> value
-func parseChoice(s string) (string, string) {
-	parts := strings.Split(s, "->")
-	if len(parts) != 2 {
+// parseChoice parses a choice line in the format: variableName < 10, otherVariable == 5: buttonString -> eventName
+// the conditions are optional and can be omitted
+func parseChoice(s string) (string, string, []ScriptCondition) {
+	parts := strings.Split(s, ":")
+	var conditions []ScriptCondition
+	if len(parts) == 2 {
+		conditionStrings := strings.Split(parts[0], ",")
+		for _, conditionString := range conditionStrings {
+			condition := parseCondition(conditionString)
+			conditions = append(conditions, condition)
+		}
+	}
+	if len(parts) == 0 {
 		panic(fmt.Sprintf("Invalid choice syntax: %s", s))
+	} else if len(parts) == 1 {
+		parts = strings.Split(parts[0], "->")
+		if len(parts) != 2 {
+			panic(fmt.Sprintf("Invalid choice syntax: %s", s))
+		}
+	} else if len(parts) != 2 {
+		parts = strings.Split(parts[1], "->")
+		if len(parts) != 2 {
+			panic(fmt.Sprintf("Invalid choice syntax: %s", s))
+		}
 	}
 	key := strings.TrimSpace(parts[0])
 	value := strings.TrimSpace(parts[1])
-	return key, value
+	return key, value, conditions
 }
 
 // parseCondition parses a condition line.

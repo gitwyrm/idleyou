@@ -150,7 +150,7 @@ for an event that never fires, which comes in handy for multiple-choice events t
 ! paused = true
 ! print "Choose wisely!"
 - My first button -> Clicked first button
-- My second button -> Clicked second button
+- mood > 5, appearance < 20: My second button -> Clicked second button
 > true
 
 === Clicked first button
@@ -166,9 +166,11 @@ for an event that never fires, which comes in handy for multiple-choice events t
 > true
 ```
 
-This creates three events, the first one is a multiple choice event, the other two are normal events which are never executed since we want to execute them manually through the first event. The first event uses the condition `? true`, which means it always fires, but it returns true `> true`, so it only fires once and is then removed from the game.
+This creates three events, the first one is a multiple choice event, the other two are normal events which are never executed since we want to execute them manually through the first event.
 
-The first event pauses the game, displays a message to the user and shows two buttons. Clicking on them executes one of the other two events, which print a message to the message log and unpause the game again.
+The first event uses the condition `? true`, which means it always fires, but it returns true `> true`, so it only fires once and is then removed from the game.
+
+The first event pauses the game, displays a message to the user and shows two buttons. Clicking on them executes one of the other two events, which print a message to the message log and unpause the game again. The second button has two conditions attached, the button is only shown if both conditions are true.
 
 You can of course also link to another multiple-choice event and have a deep decision tree.
 

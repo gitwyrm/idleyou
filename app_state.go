@@ -583,7 +583,21 @@ func (state *AppState) handleEvent(event *Event, ignoreCondition bool) {
 	}
 	if len(event.Choices) > 0 {
 		keys := make([]string, 0, len(event.Choices)) // Preallocate slice with capacity
-		for key := range event.Choices {
+		for key, value := range event.Choices {
+			if value.Conditions != nil {
+				// check if all conditions return true
+				allTrue := true
+				for _, condition := range value.Conditions {
+					conditionFn := scriptConditionToFn(state, condition)
+					if !conditionFn() {
+						allTrue = false
+						break
+					}
+				}
+				if !allTrue {
+					continue
+				}
+			}
 			keys = append(keys, key)
 		}
 		state.ChoiceEventChoices.Set(keys)

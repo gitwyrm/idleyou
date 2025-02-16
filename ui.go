@@ -134,9 +134,9 @@ func setupUI(appstate *AppState) *fyne.Container {
 				currentEvent := appstate.GetEvent(currentEventName)
 				appstate.ChoiceEventChoices.Set([]string{})
 				appstate.ChoiceEventName.Set("")
-				event := appstate.GetEvent(currentEvent.Choices[choice])
+				event := appstate.GetEvent(currentEvent.Choices[choice].EventName)
 				if event == nil {
-					log.Fatalf("Event not found: '%s'", currentEvent.Choices[choice])
+					log.Fatalf("Event not found: '%s'", currentEvent.Choices[choice].EventName)
 					return
 				}
 				appstate.handleEvent(event, true)

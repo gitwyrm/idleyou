@@ -12,14 +12,14 @@ type Event struct {
 	Done      bool
 	Condition func() bool
 	Action    func() bool
-	Choices   map[string]string
+	Choices   map[string]Choice
 }
 
 // Creates a new Event which is displayed in the eventContainer
 //
 // If the condition returns true, the event is executed.
 // If the action returns true, the event is marked as done.
-func NewEvent(name string, condition func() bool, action func() bool, choices map[string]string) Event {
+func NewEvent(name string, condition func() bool, action func() bool, choices map[string]Choice) Event {
 	return Event{
 		Name:      name,
 		Done:      false,
