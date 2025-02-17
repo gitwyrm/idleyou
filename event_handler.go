@@ -124,27 +124,6 @@ func (e *EventHandler) Sleep() {
 	)
 }
 
-func (e *EventHandler) WatchTV() {
-	e.newHandlerWith(
-		"Watching TV",
-		"You watched TV and feel a little happier, mood increased by 5.",
-		100,
-		func() {
-			mood, err := e.state.Mood.Get()
-			if err != nil {
-				fmt.Println("Error getting mood:", err)
-				return
-			}
-			if (mood + 5) <= 100 {
-				e.state.Mood.Set(mood + 5)
-			} else {
-				e.state.Mood.Set(100)
-			}
-		},
-		nil,
-	)
-}
-
 func NewEventHandler(appstate *AppState) *EventHandler {
 	return &EventHandler{
 		state: appstate,

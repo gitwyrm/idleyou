@@ -5,6 +5,25 @@
 # The canonical Source Code Repository for this Covered Software is:
 # https://github.com/gitwyrm/idleyou
 
+### --- Buttons --- ###
+
+=== Add Watch TV Button
+? working == true
++ Watch TV -> Watching TV
+> false
+
+=== Remove Watch TV Button
+? working == false
+- Watch TV
+> false
+
+=== Watching TV
+? false
+% 100
+! print You watched TV and feel a little happier, mood increased by 5.
+! mood += 5
+> false
+
 ### --- Profession selection --- ###
 
 === Choose a profession

@@ -193,9 +193,6 @@ func setupUI(appstate *AppState) *fyne.Container {
 				appstate.FoodMax.Set(food + ableToPurchase*100)
 				appstate.Messages.Prepend(fmt.Sprintf("You bought %v food!", ableToPurchase))
 			}
-		}),
-		widget.NewButton("Watch TV", func() {
-			NewEventHandler(appstate).WatchTV()
 		}))
 
 	dynamicButtonRow := container.NewHBox()
