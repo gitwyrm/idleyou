@@ -142,15 +142,15 @@ for an event that always fires, or:
 ? false
 ```
 
-for an event that never fires, which comes in handy for multiple-choice events that have one additional command they can use, starting with a `-`.
+for an event that never fires, which comes in handy for multiple-choice events that have one additional command they can use, starting with a `*`.
 
 ```
 === My first multiple choice event
 ? true
 ! paused = true
 ! print "Choose wisely!"
-- My first button -> Clicked first button
-- mood > 5, appearance < 20: My second button -> Clicked second button
+* My first button -> Clicked first button
+* mood > 5, appearance < 20: My second button -> Clicked second button
 > true
 
 === Clicked first button

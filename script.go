@@ -373,7 +373,7 @@ func parseScript(script string) []ScriptEvent {
 				currentEvent.ScriptActions = append(currentEvent.ScriptActions, action)
 			}
 
-		case strings.HasPrefix(line, "-"): // Choice
+		case strings.HasPrefix(line, "*"): // Choice
 			if currentEvent != nil {
 				key, value, conditions := parseChoice(line[1:])
 				currentEvent.Choices[key] = Choice{
