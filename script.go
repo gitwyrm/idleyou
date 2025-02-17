@@ -225,6 +225,12 @@ func scriptEventToEvent(state *AppState, scriptEvent ScriptEvent) Event {
 	event := NewEvent(
 		scriptEvent.Name,
 		func() bool {
+			// if no conditions are provided, return false so event
+			// is never triggered automatically
+			if len(conditions) == 0 {
+				return false
+			}
+
 			for _, condition := range conditions {
 				if !condition() {
 					return false

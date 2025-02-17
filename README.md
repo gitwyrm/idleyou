@@ -200,6 +200,24 @@ Here is how you can create one yourself:
 
 This event fires when the game has run for 50 ticks, shows a progress bar with the label "My Progress Event" and finishes after 50 ticks (so at tick 100), then adds "Done!" to the message list.
 
+One tip for all event types, if an event has no conditions, `? false` is added automatically, so you don't have to write it explicitly unless you think it is more readable this way. Same goes for the return falue, `> false` is added automatically unless you specifically use `> true`.
+
+So instead of writing:
+
+```
+=== My event
+? false
+! print This event never gets executed!
+> false
+```
+
+You could just write:
+
+```
+=== My event
+! print This event never gets executed!
+```
+
 ## Creating a mod
 
 Create a new folder for your mod in `~/Documents/IdleYou/scripts`, lets' call it `firefighter` since our example mod adds a firefighter job to the game.
