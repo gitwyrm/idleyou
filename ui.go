@@ -198,6 +198,25 @@ func setupUI(appstate *AppState) *fyne.Container {
 			NewEventHandler(appstate).WatchTV()
 		}))
 
+	dynamicButtonRow := container.NewHBox()
+
+	appstate.Buttons.AddListener(binding.NewDataListener(func() {
+		dynamicButtonRow.RemoveAll()
+
+		buttons, err := appstate.Buttons.Get()
+		if err != nil {
+			fmt.Println("Error getting buttons:", err)
+			return
+		}
+		for key, value := range buttons {
+			dynamicButtonRow.Add(widget.NewButton(key, func() {
+				eventName := value.(string)
+				event := appstate.GetEvent(eventName)
+				appstate.handleEvent(event, true)
+			}))
+		}
+	}))
+
 	var messageList *widget.List
 	messageList = widget.NewList(appstate.Messages.Length,
 		func() fyne.CanvasObject {
@@ -278,7 +297,7 @@ func setupUI(appstate *AppState) *fyne.Container {
 
 	leftSide := container.New(layout.NewVBoxLayout(), container.NewHBox(leftLabel, widget.NewLabel("\t\t\t\t\t")), progressContainer, playerInfo, saveButton)
 
-	center := container.NewBorder(container.New(layout.NewVBoxLayout(), centerLabel, choiceContainer, buttonRow, eventContainer), nil, nil, nil, messageList)
+	center := container.NewBorder(container.New(layout.NewVBoxLayout(), centerLabel, choiceContainer, buttonRow, dynamicButtonRow, eventContainer), nil, nil, nil, messageList)
 
 	return container.NewBorder(nil, nil, leftSide, rightSide, center)
 }

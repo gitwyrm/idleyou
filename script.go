@@ -49,9 +49,18 @@ type ScriptEvent struct {
 	Name             string
 	ScriptConditions []ScriptCondition
 	ScriptActions    []ScriptAction
+	ScriptButtons    []ScriptButton
 	Choices          map[string]Choice
 	ProgressMax      int
 	Return           bool
+}
+
+// ScriptButton represents a button addition/removal in a ScriptEvent.
+// If an EventName is provided, it adds a button.
+// If an EventName is not provided, it removes the button with the given ButtonText.
+type ScriptButton struct {
+	ButtonText string
+	EventName  string
 }
 
 type Choice struct {
@@ -198,6 +207,19 @@ func scriptEventToEvent(state *AppState, scriptEvent ScriptEvent) Event {
 	var actions []func()
 	for _, action := range scriptEvent.ScriptActions {
 		actions = append(actions, scriptActionToFn(state, action, isMultipleChoice))
+	}
+
+	// append button addition and removals to actions
+	for _, button := range scriptEvent.ScriptButtons {
+		if button.EventName == "" {
+			actions = append(actions, func() {
+				state.RemoveButton(button.ButtonText)
+			})
+		} else {
+			actions = append(actions, func() {
+				state.AddButton(button.ButtonText, button.EventName)
+			})
+		}
 	}
 
 	event := NewEvent(
@@ -383,6 +405,18 @@ func parseScript(script string) []ScriptEvent {
 				}
 			}
 
+		case strings.HasPrefix(line, "+"): // Button Addition
+			if currentEvent != nil {
+				button := parseButton(line[1:])
+				currentEvent.ScriptButtons = append(currentEvent.ScriptButtons, button)
+			}
+
+		case strings.HasPrefix(line, "-"): // Button Removal
+			if currentEvent != nil {
+				button := parseButton(line[1:])
+				currentEvent.ScriptButtons = append(currentEvent.ScriptButtons, button)
+			}
+
 		case strings.HasPrefix(line, ">"):
 			if currentEvent != nil {
 				retStr := strings.TrimSpace(line[1:])
@@ -404,6 +438,29 @@ func parseScript(script string) []ScriptEvent {
 	}
 
 	return events
+}
+
+// Parses a line representing a button addition or removal into a ScriptButton
+func parseButton(s string) ScriptButton {
+	// if the line is in the format: button name -> event name
+	// it is a button addition
+	if strings.Contains(s, "->") {
+		parts := strings.Split(s, "->")
+		if len(parts) != 2 {
+			log.Fatal("Error parsing ScriptButton:", s)
+		}
+		return ScriptButton{
+			strings.TrimSpace(parts[0]),
+			strings.TrimSpace(parts[1]),
+		}
+	}
+
+	// if the line is in the format: button name
+	// it is a button removal
+	return ScriptButton{
+		strings.TrimSpace(s),
+		"",
+	}
 }
 
 func parseProgressMax(s string) int {

@@ -11,7 +11,7 @@
 ? true
 ! paused = true
 ! print You need to choose which profession you want to go into.
-- Retail -> Chose Retail
+* Retail -> Chose Retail
 > true
 
 === Chose Retail

@@ -46,6 +46,21 @@ type AppState struct {
 	ChoiceEventChoices binding.StringList
 	Messages           binding.StringList
 	Events             []Event
+	Buttons            binding.UntypedMap
+}
+
+func (a *AppState) AddButton(buttonText string, eventName string) {
+	// only add button if it doesn't already exist
+	if _, err := a.Buttons.GetValue(buttonText); err != nil {
+		a.Buttons.SetValue(buttonText, eventName)
+	}
+}
+
+func (a *AppState) RemoveButton(buttonText string) {
+	// only remove button if it exists
+	if _, err := a.Buttons.GetValue(buttonText); err == nil {
+		a.Buttons.Delete(buttonText)
+	}
 }
 
 // function so set app state variable via string name
@@ -326,6 +341,7 @@ func NewAppState(ticksValue, workValue, workXP, foodValue, energyValue, energyMa
 		ChoiceEventChoices: binding.NewStringList(),
 		Messages:           binding.NewStringList(),
 		Events:             []Event{},
+		Buttons:            binding.NewUntypedMap(),
 	}
 	appstate.Ticks.Set(ticksValue)
 	appstate.Work.Set(workValue)

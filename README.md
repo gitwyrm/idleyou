@@ -174,6 +174,18 @@ The first event pauses the game, displays a message to the user and shows two bu
 
 You can of course also link to another multiple-choice event and have a deep decision tree.
 
+While the multiple choice event buttons are only visible during a multiple choice event, you can also permanently add buttons to the user interface with a slightly modified syntax (`+` instead of `*`):
+
+```
++ button text -> event name
+```
+
+And to remove such a button again:
+
+```
+- button text
+```
+
 There is one other event type, a progress event. It's an event that shows a progress bar and only executes it's actions (`!`) once the progress has reached it's maximum value (`%`). Sleeping, Morning Routine and Watching TV are all progress events.
 
 Here is how you can create one yourself:
