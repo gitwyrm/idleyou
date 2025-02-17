@@ -208,7 +208,14 @@ func setupUI(appstate *AppState) *fyne.Container {
 			fmt.Println("Error getting buttons:", err)
 			return
 		}
-		for key, value := range buttons {
+
+		// We iterate over the keys instead of the buttons so that deleted
+		// buttons are not added to the dynamicButtonRow, because for
+		// some reason, deleting a key from the binding.UntypedMap does only
+		// remove it from keys, but not from the map itself.
+		keys := appstate.Buttons.Keys()
+		for _, key := range keys {
+			value := buttons[key]
 			dynamicButtonRow.Add(widget.NewButton(key, func() {
 				eventName := value.(string)
 				event := appstate.GetEvent(eventName)
