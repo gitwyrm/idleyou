@@ -85,7 +85,7 @@ The print command prints a message to the message log.
 
 The show command shows a picture (can also be an animated GIF). The pictures are stored in `~/Documents/IdleYou/images` and you only need to give the show command the name of the picture file, not the whole path.
 
-Conditions check variables for their value, possible variables are:
+Conditions check variables for their value, builtin variables are:
 
 ```
 Ticks
@@ -128,6 +128,15 @@ And the operators you can use are:
 money -= 10 # subtracts 10 from money
 money += 10 # adds 10 to money
 money = 10 # sets money to 10
+```
+
+You can also define your own variables in an event and use them just like the builtin variables:
+
+```
+=== Create variables
+? true
+! myVariable = 42
+> true
 ```
 
 For conditions you can also just write:

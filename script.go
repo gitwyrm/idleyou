@@ -403,7 +403,10 @@ func parseScript(script string) []ScriptEvent {
 
 		case strings.HasPrefix(line, "*"): // Choice
 			if currentEvent != nil {
-				key, value, conditions := parseChoice(line[1:])
+				key, value, conditions, err := parseChoice(line[1:])
+				if err != nil {
+					log.Fatal(err)
+				}
 				currentEvent.Choices[key] = Choice{
 					ButtonText: key,
 					EventName:  value,
@@ -478,34 +481,31 @@ func parseProgressMax(s string) int {
 	return max
 }
 
-// parseChoice parses a choice line in the format: variableName < 10, otherVariable == 5: buttonString -> eventName
-// the conditions are optional and can be omitted
-func parseChoice(s string) (string, string, []ScriptCondition) {
-	parts := strings.Split(s, ":")
+// parseChoice parses a choice line in the format:
+// "variableName < 10, otherVariable == 5: buttonString -> eventName"
+// Conditions are optional.
+func parseChoice(s string) (string, string, []ScriptCondition, error) {
+	parts := strings.SplitN(s, ":", 2) // Split at most once
 	var conditions []ScriptCondition
+
 	if len(parts) == 2 {
 		conditionStrings := strings.Split(parts[0], ",")
 		for _, conditionString := range conditionStrings {
-			condition := parseCondition(conditionString)
+			condition := parseCondition(strings.TrimSpace(conditionString))
 			conditions = append(conditions, condition)
 		}
+		s = parts[1] // Keep only the right-hand side for further parsing
 	}
-	if len(parts) == 0 {
-		panic(fmt.Sprintf("Invalid choice syntax: %s", s))
-	} else if len(parts) == 1 {
-		parts = strings.Split(parts[0], "->")
-		if len(parts) != 2 {
-			panic(fmt.Sprintf("Invalid choice syntax: %s", s))
-		}
-	} else if len(parts) != 2 {
-		parts = strings.Split(parts[1], "->")
-		if len(parts) != 2 {
-			panic(fmt.Sprintf("Invalid choice syntax: %s", s))
-		}
+
+	choiceParts := strings.SplitN(s, "->", 2) // Split at most once
+	if len(choiceParts) != 2 {
+		return "", "", nil, fmt.Errorf("invalid choice syntax: %s", s)
 	}
-	key := strings.TrimSpace(parts[0])
-	value := strings.TrimSpace(parts[1])
-	return key, value, conditions
+
+	key := strings.TrimSpace(choiceParts[0])
+	value := strings.TrimSpace(choiceParts[1])
+
+	return key, value, conditions, nil
 }
 
 // parseCondition parses a condition line.

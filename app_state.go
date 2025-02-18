@@ -47,6 +47,7 @@ type AppState struct {
 	Messages           binding.StringList
 	Events             []Event
 	Buttons            binding.UntypedMap
+	Variables          binding.UntypedMap
 }
 
 func (a *AppState) AddButton(buttonText string, eventName string) {
@@ -66,6 +67,7 @@ func (a *AppState) RemoveButton(buttonText string) {
 // function so set app state variable via string name
 // for convenience, variable value will be kept within valid range, for example
 // between 0 and 100 for progress bar values
+// If the variable is not found, it will be created.
 func (a *AppState) Set(variable string, value interface{}) {
 	switch strings.ToLower(variable) {
 	case "ticks":
@@ -151,6 +153,8 @@ func (a *AppState) Set(variable string, value interface{}) {
 		a.Messages.Set(value.([]string))
 	case "events":
 		a.Events = value.([]Event)
+	default:
+		a.Variables.SetValue(variable, value)
 	}
 }
 
@@ -307,11 +311,16 @@ func (a *AppState) Get(variable string) interface{} {
 		}
 		return v
 	default:
-		return nil
+		// get the value from Variables
+		v, err := a.Variables.GetValue(variable)
+		if err != nil {
+			return nil
+		}
+		return v
 	}
 }
 
-func NewAppState(ticksValue, workValue, workXP, foodValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, salary int, working bool, paused bool, routineShower bool, routineShave bool, routineBrushTeeth bool, routineBonus int, eventName string, eventValue int, eventMax int, choiceEventName string, choiceEventText string, choiceEventChoices []string) *AppState {
+func NewAppState(ticksValue, workValue, workXP, foodValue, foodMaxValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, salary int, working bool, paused bool, routineShower bool, routineShave bool, routineBrushTeeth bool, routineBonus int, eventName string, eventValue int, eventMax int, choiceEventName string, choiceEventText string, choiceEventChoices []string) *AppState {
 	var appstate AppState
 	appstate = AppState{
 		Ticks:              binding.NewInt(),
@@ -342,6 +351,7 @@ func NewAppState(ticksValue, workValue, workXP, foodValue, energyValue, energyMa
 		Messages:           binding.NewStringList(),
 		Events:             []Event{},
 		Buttons:            binding.NewUntypedMap(),
+		Variables:          binding.NewUntypedMap(),
 	}
 	appstate.Ticks.Set(ticksValue)
 	appstate.Work.Set(workValue)
@@ -377,7 +387,8 @@ func NewAppStateWithDefaults() *AppState {
 		0,          // ticksValue
 		0,          // workValue
 		0,          // workXP
-		100,        // foodValue
+		200,        // foodValue
+		200,        // foodMaxValue
 		100,        // energyValue
 		100,        // energyMaxValue
 		50,         // moodValue
@@ -411,6 +422,7 @@ func fromJSON(jsonData string) *AppState {
 	workValue := data["work"]
 	workXP := data["workXP"]
 	foodValue := data["food"]
+	foodMaxValue := data["foodMax"]
 	energyValue := data["energy"]
 	energyMaxValue := data["energyMax"]
 	moodValue := data["mood"]
@@ -437,6 +449,7 @@ func fromJSON(jsonData string) *AppState {
 		workValue.(int),
 		workXP.(int),
 		foodValue.(int),
+		foodMaxValue.(int),
 		energyValue.(int),
 		energyMaxValue.(int),
 		moodValue.(int),
