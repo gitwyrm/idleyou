@@ -70,9 +70,20 @@ func setupUI(appstate *AppState) *fyne.Container {
 		widget.NewLabel("Appearance"), progressBarForBinding(appearanceBinding, nil),
 	)
 
+	// binding to remove modName from eventName label
+	eventNameLabelBinding := binding.NewString()
+	appstate.EventName.AddListener(binding.NewDataListener(func() {
+		eventName, err := appstate.EventName.Get()
+		if err != nil {
+			fmt.Println("Error getting event name:", err)
+			return
+		}
+		eventNameLabelBinding.Set(getStringAfterSlash(eventName))
+	}))
+
 	eventContainer := container.New(
 		layout.NewVBoxLayout(),
-		widget.NewLabelWithData(appstate.EventName),
+		widget.NewLabelWithData(eventNameLabelBinding),
 		progressBarForBinding(appstate.EventValue, appstate.EventMax),
 	)
 
@@ -94,10 +105,21 @@ func setupUI(appstate *AppState) *fyne.Container {
 		layout.NewVBoxLayout(),
 	)
 
+	// binding to remove modName from ChoiceEventName
+	choiceEventNameLabelBinding := binding.NewString()
+	appstate.ChoiceEventName.AddListener(binding.NewDataListener(func() {
+		choiceEventName, err := appstate.ChoiceEventName.Get()
+		if err != nil {
+			fmt.Println("Error transforming choiceEventName:", err)
+			return
+		}
+		choiceEventNameLabelBinding.Set(getStringAfterSlash(choiceEventName))
+	}))
+
 	// Choice event container
 	choiceContainer := container.New(
 		layout.NewVBoxLayout(),
-		widget.NewLabelWithData(appstate.ChoiceEventName),
+		widget.NewLabelWithData(choiceEventNameLabelBinding),
 		widget.NewLabelWithData(appstate.ChoiceEventText),
 		choiceButtons,
 	)
@@ -244,7 +266,7 @@ func setupUI(appstate *AppState) *fyne.Container {
 				if err != nil {
 					log.Fatal("Could not determine user home directory:", err)
 				}
-				imagePath := filepath.Join(homeDir, "Documents", "IdleYou", "images", strings.TrimPrefix(text, "Image: "))
+				imagePath := filepath.Join(homeDir, "Documents", "IdleYou", "mods", strings.TrimPrefix(text, "Image: "))
 				if strings.HasSuffix(imagePath, ".gif") {
 					gif, err := fynex.NewAnimatedGif(storage.NewFileURI(imagePath))
 					if err != nil {

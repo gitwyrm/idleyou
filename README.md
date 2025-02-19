@@ -53,11 +53,11 @@ fyne package -os linux
 
 ## Scripting
 
-The game uses a simple scripting language for events that happen during the game. You can easily change the script by running the game once and then opening the `~/Documents/IdleYou/scripts/script.txt` file in a text editor.
+The game uses a simple scripting language for events that happen during the game. You can easily change the script by running the game once and then opening the `~/Documents/IdleYou/mods/default/scripts/script.txt` file in a text editor.
 
-You can also easily create mods by creating a new folder inside of the scripts directory and adding one or more .txt files in there with new events. If you want to add images, create another directory (with the same name) in the images directory and put your images there.
+You can also easily create mods by creating a new folder inside of the mods directory with a subfolder called scripts and adding one or more .txt files in there with new events. If you want to add images, create another subfolder called images and put your images there.
 
-The event names get automatically prefixed with the folder name when the script files are read by the game, so you don't need to worry about your mod's events interfering with other mods. Image paths are also automatically prefixed with the mod name, so you don't need to specify the mod's folder and can just use the file name in the script.
+The event names get automatically prefixed with the mod name (based on the folder name) when the script files are read by the game, so you don't need to worry about your mod's events interfering with other mods. Image paths are also automatically prefixed with the mod name, so you don't need to specify the mod's folder and can just use the file name in the script.
 
 ### Syntax
 
@@ -83,7 +83,7 @@ The event conditions (`?` lines) are checked on each game tick, which is about a
 
 The print command prints a message to the message log.
 
-The show command shows a picture (can also be an animated GIF). The pictures are stored in `~/Documents/IdleYou/images` and you only need to give the show command the name of the picture file, not the whole path.
+The show command shows a picture (can also be an animated GIF). The pictures are stored in `~/Documents/IdleYou/mods/default/images` and you only need to give the show command the name of the picture file, not the whole path.
 
 Conditions check variables for their value, builtin variables are:
 
@@ -209,7 +209,7 @@ Here is how you can create one yourself:
 
 This event fires when the game has run for 50 ticks, shows a progress bar with the label "My Progress Event" and finishes after 50 ticks (so at tick 100), then adds "Done!" to the message list.
 
-One tip for all event types, if an event has no conditions, `? false` is added automatically, so you don't have to write it explicitly unless you think it is more readable this way. Same goes for the return falue, `> false` is added automatically unless you specifically use `> true`.
+One tip for all event types, if an event has no conditions, `? false` is added automatically, so you don't have to write it explicitly unless you think it is more readable this way. Same goes for the return value, `> false` is added automatically unless you specifically use `> true`.
 
 So instead of writing:
 
@@ -229,8 +229,8 @@ You could just write:
 
 ## Creating a mod
 
-Create a new folder for your mod in `~/Documents/IdleYou/scripts`, lets' call it `firefighter` since our example mod adds a firefighter job to the game.
+Create a new folder for your mod in `~/Documents/IdleYou/mods`, lets' call it `firefighter` since our example mod adds a firefighter job to the game. Create two subfolders, scripts and images.
 
-In that folder `~/Documents/IdleYou/scripts/firefighter`, create one or more .txt files that contain your mod's script. The files get all concatenated together, so you can split everything up in as many files as you like.
+In the folder `~/Documents/IdleYou/mods/firefighter/scripts`, create one or more .txt files that contain your mod's script. The files get all concatenated together, so you can split everything up in as many files as you like to organize the script code however you want.
 
-If your mod has images, put them in `~/Documents/IdleYou/images/firefighter`. When you show an image with `! show image.png`, you don't need to add `firefighter` to the path, that is automatically added and inferred from the name of the folder. That's why both folders, the one inside images and the one inside scripts, should use the same name, `firefighter`.
+If your mod has images, put them in `~/Documents/IdleYou/mods/firefighter/images`. When you show an image with `! show image.png`, you don't need to add `firefighter/images` to the path, that is automatically added and inferred from the name of the mod's folder.
