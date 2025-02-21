@@ -92,7 +92,6 @@ func readScript() string {
 		log.Printf("Error reading mod script files: %v\n", err)
 	}
 	if script != "" {
-		fmt.Println(script)
 		return script
 	}
 
