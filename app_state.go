@@ -38,9 +38,9 @@ type AppState struct {
 	RoutineShave       binding.Bool
 	RoutineBrushTeeth  binding.Bool
 	RoutineBonus       binding.Int
-	EventName          binding.String
-	EventValue         binding.Int
-	EventMax           binding.Int
+	ProgressEventName  binding.String
+	ProgressEventValue binding.Int
+	ProgressEventMax   binding.Int
 	ChoiceEventName    binding.String
 	ChoiceEventText    binding.String
 	ChoiceEventChoices binding.StringList
@@ -144,11 +144,11 @@ func (a *AppState) Set(variable string, value interface{}) {
 	case "routinebonus":
 		a.RoutineBonus.Set(value.(int))
 	case "eventname":
-		a.EventName.Set(value.(string))
+		a.ProgressEventName.Set(value.(string))
 	case "eventvalue":
-		a.EventValue.Set(value.(int))
+		a.ProgressEventValue.Set(value.(int))
 	case "eventmax":
-		a.EventMax.Set(value.(int))
+		a.ProgressEventMax.Set(value.(int))
 	case "messages":
 		a.Messages.Set(value.([]string))
 	case "events":
@@ -293,19 +293,19 @@ func (a *AppState) Get(variable string) interface{} {
 		}
 		return v
 	case "eventname":
-		v, err := a.EventName.Get()
+		v, err := a.ProgressEventName.Get()
 		if err != nil {
 			return nil
 		}
 		return v
 	case "eventvalue":
-		v, err := a.EventValue.Get()
+		v, err := a.ProgressEventValue.Get()
 		if err != nil {
 			return nil
 		}
 		return v
 	case "eventmax":
-		v, err := a.EventMax.Get()
+		v, err := a.ProgressEventMax.Get()
 		if err != nil {
 			return nil
 		}
@@ -342,9 +342,9 @@ func NewAppState(ticksValue, workValue, workXP, foodValue, foodMaxValue, energyV
 		RoutineShave:       binding.NewBool(),
 		RoutineBrushTeeth:  binding.NewBool(),
 		RoutineBonus:       binding.NewInt(),
-		EventName:          binding.NewString(),
-		EventValue:         binding.NewInt(),
-		EventMax:           binding.NewInt(),
+		ProgressEventName:  binding.NewString(),
+		ProgressEventValue: binding.NewInt(),
+		ProgressEventMax:   binding.NewInt(),
 		ChoiceEventName:    binding.NewString(),
 		ChoiceEventText:    binding.NewString(),
 		ChoiceEventChoices: binding.NewStringList(),
@@ -372,9 +372,9 @@ func NewAppState(ticksValue, workValue, workXP, foodValue, foodMaxValue, energyV
 	appstate.RoutineShave.Set(routineShave)
 	appstate.RoutineBrushTeeth.Set(routineBrushTeeth)
 	appstate.RoutineBonus.Set(routineBonus)
-	appstate.EventName.Set(eventName)
-	appstate.EventValue.Set(eventValue)
-	appstate.EventMax.Set(eventMax)
+	appstate.ProgressEventName.Set(eventName)
+	appstate.ProgressEventValue.Set(eventValue)
+	appstate.ProgressEventMax.Set(eventMax)
 	appstate.ChoiceEventName.Set(choiceEventName)
 	appstate.ChoiceEventText.Set(choiceEventText)
 	appstate.ChoiceEventChoices.Set(choiceEventChoices)
@@ -509,7 +509,7 @@ func (state *AppState) gameTick() {
 		fmt.Println("Error getting working:", err)
 		return
 	}
-	eventName, err := state.EventName.Get()
+	eventName, err := state.ProgressEventName.Get()
 	if err != nil {
 		fmt.Println("Error getting event name:", err)
 		return
@@ -559,7 +559,7 @@ func (state *AppState) gameTick() {
 				state.Energy.Set(energy - 1)
 			}
 		} else {
-			eventName, err := state.EventName.Get()
+			eventName, err := state.ProgressEventName.Get()
 			if err != nil {
 				fmt.Println("Error getting event name:", err)
 				return
@@ -594,12 +594,12 @@ func (state *AppState) gameTick() {
 
 	// Handle current event
 	if eventName != "" {
-		eventValue, err := state.EventValue.Get()
+		eventValue, err := state.ProgressEventValue.Get()
 		if err != nil {
 			fmt.Println("Error getting event value:", err)
 			return
 		}
-		state.EventValue.Set(eventValue + 1)
+		state.ProgressEventValue.Set(eventValue + 1)
 	}
 }
 
@@ -674,15 +674,15 @@ func (state *AppState) toJSON() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	eventName, err := state.EventName.Get()
+	eventName, err := state.ProgressEventName.Get()
 	if err != nil {
 		return "", err
 	}
-	eventValue, err := state.EventValue.Get()
+	eventValue, err := state.ProgressEventValue.Get()
 	if err != nil {
 		return "", err
 	}
-	eventMax, err := state.EventMax.Get()
+	eventMax, err := state.ProgressEventMax.Get()
 	if err != nil {
 		return "", err
 	}

@@ -72,8 +72,8 @@ func setupUI(appstate *AppState) *fyne.Container {
 
 	// binding to remove modName from eventName label
 	eventNameLabelBinding := binding.NewString()
-	appstate.EventName.AddListener(binding.NewDataListener(func() {
-		eventName, err := appstate.EventName.Get()
+	appstate.ProgressEventName.AddListener(binding.NewDataListener(func() {
+		eventName, err := appstate.ProgressEventName.Get()
 		if err != nil {
 			fmt.Println("Error getting event name:", err)
 			return
@@ -84,11 +84,11 @@ func setupUI(appstate *AppState) *fyne.Container {
 	eventContainer := container.New(
 		layout.NewVBoxLayout(),
 		widget.NewLabelWithData(eventNameLabelBinding),
-		progressBarForBinding(appstate.EventValue, appstate.EventMax),
+		progressBarForBinding(appstate.ProgressEventValue, appstate.ProgressEventMax),
 	)
 
-	appstate.EventName.AddListener(binding.NewDataListener(func() {
-		eventName, err := appstate.EventName.Get()
+	appstate.ProgressEventName.AddListener(binding.NewDataListener(func() {
+		eventName, err := appstate.ProgressEventName.Get()
 		if err != nil {
 			fmt.Println("Error getting event name:", err)
 			return

@@ -18,7 +18,7 @@ type ProgressEvent struct {
 }
 
 func (e *ProgressEvent) newEventWith(eventName string, doneMessage string, eventMax int, onDone func(), onTick func()) {
-	currentEventName, err := e.state.EventName.Get()
+	currentEventName, err := e.state.ProgressEventName.Get()
 	if err != nil {
 		fmt.Println("Error getting event name:", err)
 		return
@@ -29,12 +29,12 @@ func (e *ProgressEvent) newEventWith(eventName string, doneMessage string, event
 	}
 
 	e.state.Working.Set(false)
-	e.state.EventName.Set(eventName)
-	e.state.EventValue.Set(0)
-	e.state.EventMax.Set(eventMax)
+	e.state.ProgressEventName.Set(eventName)
+	e.state.ProgressEventValue.Set(0)
+	e.state.ProgressEventMax.Set(eventMax)
 	var listener binding.DataListener
 	listener = binding.NewDataListener(func() {
-		eventValue, err := e.state.EventValue.Get()
+		eventValue, err := e.state.ProgressEventValue.Get()
 		if err != nil {
 			fmt.Println("Error getting event value:", err)
 			return
@@ -43,8 +43,8 @@ func (e *ProgressEvent) newEventWith(eventName string, doneMessage string, event
 			onTick()
 		}
 		if eventValue >= eventMax {
-			e.state.EventValue.RemoveListener(listener)
-			e.state.EventName.Set("")
+			e.state.ProgressEventValue.RemoveListener(listener)
+			e.state.ProgressEventName.Set("")
 			e.state.Working.Set(true)
 			if doneMessage != "" {
 				e.state.Messages.Prepend(doneMessage)
@@ -54,7 +54,7 @@ func (e *ProgressEvent) newEventWith(eventName string, doneMessage string, event
 			}
 		}
 	})
-	e.state.EventValue.AddListener(listener)
+	e.state.ProgressEventValue.AddListener(listener)
 }
 
 func (e *ProgressEvent) MorningRoutine() {
