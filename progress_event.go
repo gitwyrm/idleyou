@@ -13,11 +13,11 @@ import (
 	"fyne.io/fyne/v2/data/binding"
 )
 
-type EventHandler struct {
+type ProgressEvent struct {
 	state *AppState
 }
 
-func (e *EventHandler) newHandlerWith(eventName string, doneMessage string, eventMax int, onDone func(), onTick func()) {
+func (e *ProgressEvent) newEventWith(eventName string, doneMessage string, eventMax int, onDone func(), onTick func()) {
 	currentEventName, err := e.state.EventName.Get()
 	if err != nil {
 		fmt.Println("Error getting event name:", err)
@@ -57,7 +57,7 @@ func (e *EventHandler) newHandlerWith(eventName string, doneMessage string, even
 	e.state.EventValue.AddListener(listener)
 }
 
-func (e *EventHandler) MorningRoutine() {
+func (e *ProgressEvent) MorningRoutine() {
 	routineShower, err := e.state.RoutineShower.Get()
 	if err != nil {
 		fmt.Println("Error getting routine shower:", err)
@@ -87,7 +87,7 @@ func (e *EventHandler) MorningRoutine() {
 		ticksNeeded += 5
 		bonus += 2
 	}
-	e.newHandlerWith(
+	e.newEventWith(
 		"Morning Routine",
 		"You completed your morning routine.",
 		ticksNeeded,
@@ -98,8 +98,8 @@ func (e *EventHandler) MorningRoutine() {
 	)
 }
 
-func (e *EventHandler) Sleep() {
-	e.newHandlerWith(
+func (e *ProgressEvent) Sleep() {
+	e.newEventWith(
 		"Sleeping",
 		"You slept well and feel refreshed.",
 		100,
@@ -124,8 +124,8 @@ func (e *EventHandler) Sleep() {
 	)
 }
 
-func NewEventHandler(appstate *AppState) *EventHandler {
-	return &EventHandler{
+func NewEventHandler(appstate *AppState) *ProgressEvent {
+	return &ProgressEvent{
 		state: appstate,
 	}
 }

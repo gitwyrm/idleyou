@@ -243,7 +243,7 @@ func scriptEventToEvent(state *AppState, scriptEvent ScriptEvent) Event {
 			if scriptEvent.ProgressMax > 0 {
 				// if no other event is running
 				if state.Get("eventName") == "" {
-					NewEventHandler(state).newHandlerWith(
+					NewEventHandler(state).newEventWith(
 						scriptEvent.Name,
 						"",
 						scriptEvent.ProgressMax,
