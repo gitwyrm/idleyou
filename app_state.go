@@ -19,37 +19,44 @@ import (
 )
 
 type AppState struct {
-	Ticks              binding.Int
-	Work               binding.Int
-	WorkXP             binding.Int
-	Food               binding.Int
-	FoodMax            binding.Int
-	Energy             binding.Int
-	EnergyMax          binding.Int
-	Mood               binding.Int
-	Money              binding.Int
-	Charisma           binding.Int
-	Fitness            binding.Int
-	Job                binding.String
-	Salary             binding.Int
-	Working            binding.Bool
-	Paused             binding.Bool
-	RoutineShower      binding.Bool
-	RoutineShave       binding.Bool
-	RoutineBrushTeeth  binding.Bool
-	RoutineBonus       binding.Int
+	// Built-in variables
+	Ticks     binding.Int
+	Work      binding.Int
+	WorkXP    binding.Int
+	Food      binding.Int
+	FoodMax   binding.Int
+	Energy    binding.Int
+	EnergyMax binding.Int
+	Mood      binding.Int
+	Money     binding.Int
+	Charisma  binding.Int
+	Fitness   binding.Int
+	Job       binding.String
+	Salary    binding.Int
+	Working   binding.Bool
+	Paused    binding.Bool
+	// Morning routine
+	RoutineShower     binding.Bool
+	RoutineShave      binding.Bool
+	RoutineBrushTeeth binding.Bool
+	RoutineBonus      binding.Int
+	// Progress events
 	ProgressEventName  binding.String
 	ProgressEventValue binding.Int
 	ProgressEventMax   binding.Int
+	// Choice events
 	ChoiceEventName    binding.String
 	ChoiceEventText    binding.String
 	ChoiceEventChoices binding.StringList
-	Messages           binding.StringList
-	Events             []Event
-	Buttons            binding.UntypedMap
-	Variables          binding.UntypedMap
+	// UI
+	Messages binding.StringList
+	Events   []Event
+	Buttons  binding.UntypedMap
+	// Custom variables
+	Variables binding.UntypedMap
 }
 
+// Adds a persistent button to the UI
 func (a *AppState) AddButton(buttonText string, eventName string) {
 	// only add button if it doesn't already exist
 	if _, err := a.Buttons.GetValue(buttonText); err != nil {
@@ -57,6 +64,7 @@ func (a *AppState) AddButton(buttonText string, eventName string) {
 	}
 }
 
+// Removes a persistent button from the UI
 func (a *AppState) RemoveButton(buttonText string) {
 	// only remove button if it exists
 	if _, err := a.Buttons.GetValue(buttonText); err == nil {
@@ -473,6 +481,8 @@ func fromJSON(jsonData string) *AppState {
 	)
 }
 
+// Processes a single tick in the game. In other game engines,
+// this would be like the update function called in a game loop
 func (state *AppState) gameTick() {
 	// Pause
 	paused, err := state.Paused.Get()
