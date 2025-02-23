@@ -70,127 +70,6 @@ type Choice struct {
 }
 
 // -----------------------------
-// Utility Functions
-// -----------------------------
-
-// getVariableType returns booleans indicating whether the value is an int, float64, string, or bool
-func getVariableType(value interface{}) (isInt, isFloat, isString, isBool bool) {
-	switch value.(type) {
-	case int:
-		return true, false, false, false
-	case float64:
-		return false, true, false, false
-	case string:
-		return false, false, true, false
-	case bool:
-		return false, false, false, true
-	default:
-		return false, false, false, false
-	}
-}
-
-// getVariableValue extracts the value as int, float64, string, or bool.
-// Only one of the returned values will be non-zero/non-empty based on the type.
-func getVariableValue(value interface{}) (int, float64, string, bool) {
-	switch v := value.(type) {
-	case int:
-		return v, 0, "", false
-	case float64:
-		return 0, v, "", false
-	case string:
-		return 0, 0, v, false
-	case bool:
-		return 0, 0, "", v
-	default:
-		return 0, 0, "", true
-	}
-}
-
-// evaluateCondition compares two numbers (either both ints or both floats)
-// based on the operator.
-func evaluateCondition(operator string, varInt, valInt int, varFloat, valFloat float64) bool {
-	// If comparing floats, use float comparison
-	if varFloat != 0 || valFloat != 0 {
-		switch operator {
-		case "<":
-			return varFloat < valFloat
-		case ">":
-			return varFloat > valFloat
-		case "<=":
-			return varFloat <= valFloat
-		case ">=":
-			return varFloat >= valFloat
-		case "==":
-			return varFloat == valFloat
-		case "!=":
-			return varFloat != valFloat
-		default:
-			panic(fmt.Sprintf("Unknown operator: %s", operator))
-		}
-	} else {
-		// Otherwise, compare ints
-		switch operator {
-		case "<":
-			return varInt < valInt
-		case ">":
-			return varInt > valInt
-		case "<=":
-			return varInt <= valInt
-		case ">=":
-			return varInt >= valInt
-		case "==":
-			return varInt == valInt
-		case "!=":
-			return varInt != valInt
-		default:
-			panic(fmt.Sprintf("Unknown operator: %s", operator))
-		}
-	}
-}
-
-// evaluateNumericCondition determines whether both values are numeric and uses the
-// appropriate comparison. If the types do not match, it returns false.
-func evaluateNumericCondition(operator string, varVal, condVal interface{}) bool {
-	varIsInt, varIsFloat, _, _ := getVariableType(varVal)
-	condIsInt, condIsFloat, _, _ := getVariableType(condVal)
-
-	if varIsFloat && condIsFloat {
-		_, varFloat, _, _ := getVariableValue(varVal)
-		_, condFloat, _, _ := getVariableValue(condVal)
-		return evaluateCondition(operator, 0, 0, varFloat, condFloat)
-	} else if varIsInt && condIsInt {
-		varInt, _, _, _ := getVariableValue(varVal)
-		condInt, _, _, _ := getVariableValue(condVal)
-		return evaluateCondition(operator, varInt, condInt, 0, 0)
-	}
-	// Mismatched or non-numeric types result in false
-	return false
-}
-
-// modifyState applies an action to the state
-func modifyState(state *AppState, variable, operator string, value interface{}) {
-	currentValue := state.Get(variable)
-	switch operator {
-	case "=":
-		state.Set(variable, value)
-	case "+=":
-		if intVal, ok := currentValue.(int); ok {
-			state.Set(variable, intVal+value.(int))
-		} else {
-			log.Fatal("Unsupported type for += operation on variable ", variable)
-		}
-	case "-=":
-		if intVal, ok := currentValue.(int); ok {
-			state.Set(variable, intVal-value.(int))
-		} else {
-			log.Fatal("Unsupported type for -= operation on variable ", variable)
-		}
-	default:
-		log.Fatal("Unknown operator: ", operator)
-	}
-}
-
-// -----------------------------
 // Converting ScriptEvent to Event
 // -----------------------------
 
@@ -307,6 +186,25 @@ func scriptActionToFn(state *AppState, action ScriptAction, isMultipleChoice boo
 	}
 }
 
+func modifyState(state *AppState, actionVariable, actionOperator string, actionValue interface{}) {
+	variableGV := NewGameVariable(actionVariable, state.Get(actionVariable))
+	actionGV := NewGameVariable(actionVariable, actionValue)
+	switch actionOperator {
+	case "=":
+		actionGV.UpdateAppState(state)
+	case "+=":
+		variableGV.Add(actionGV).UpdateAppState(state)
+	case "-=":
+		variableGV.Subtract(actionGV).UpdateAppState(state)
+	case "*=":
+		variableGV.Multiply(actionGV).UpdateAppState(state)
+	case "/=":
+		variableGV.Divide(actionGV).UpdateAppState(state)
+	default:
+		panic("Unsupported operator")
+	}
+}
+
 func scriptConditionToFn(state *AppState, condition ScriptCondition) func() bool {
 	// Special case for literal boolean conditions
 	if condition.Variable == "boolean" {
@@ -321,35 +219,11 @@ func scriptConditionToFn(state *AppState, condition ScriptCondition) func() bool
 		// Retrieve the variable's current value from the state
 		variableValue := state.Get(condition.Variable)
 
-		_, _, variableIsString, variableIsBool := getVariableType(variableValue)
-		_, _, valueIsString, valueIsBool := getVariableType(condition.Value)
+		gameVariable := NewGameVariable(condition.Variable, variableValue)
 
-		// If both variable and condition are strings, compare them
-		if variableIsString && valueIsString {
-			switch condition.Operator {
-			case "==":
-				return variableValue.(string) == condition.Value.(string)
-			case "!=":
-				return variableValue.(string) != condition.Value.(string)
-			default:
-				return false
-			}
-		}
+		conditionGV := NewGameVariable(condition.Variable, condition.Value)
 
-		// If both variable and condition are booleans, compare them
-		if variableIsBool && valueIsBool {
-			switch condition.Operator {
-			case "==":
-				return variableValue.(bool) == condition.Value.(bool)
-			case "!=":
-				return variableValue.(bool) != condition.Value.(bool)
-			default:
-				return false
-			}
-		}
-
-		// Otherwise, treat them as numeric
-		return evaluateNumericCondition(condition.Operator, variableValue, condition.Value)
+		return gameVariable.Compare(conditionGV, condition.Operator)
 	}
 }
 
