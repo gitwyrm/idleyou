@@ -2,7 +2,7 @@
 
 A simple IDLE game written in Go, using Fyne for the GUI.
 
-<p><center>![icon](icon.png)</center></p>
+![icon](Icon.png)
 
 **This is currently in early development, so don't expect this to be more than a tech demo.**
 
