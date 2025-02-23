@@ -2,6 +2,8 @@
 
 A simple IDLE game written in Go, using Fyne for the GUI.
 
+<p><center>![icon](icon.png)</center></p>
+
 **This is currently in early development, so don't expect this to be more than a tech demo.**
 
 It is mostly a learning project right now with next to no content, but might turn into an actual game. You can however already use it to create your own games or write mods for the official IdleYou game.
