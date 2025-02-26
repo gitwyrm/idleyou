@@ -13,7 +13,9 @@ import (
 	"log"
 	"math/rand/v2"
 	"os"
+	"runtime"
 	"strings"
+	"sync"
 
 	"fyne.io/fyne/v2/data/binding"
 )
@@ -597,12 +599,33 @@ func (state *AppState) gameTick() {
 		}
 	}
 
-	// Handle events
-	for i := range state.Events {
-		state.handleEvent(&state.Events[i], false)
+	// Process events in parallel
+
+	// Worker pool setup
+	numWorkers := runtime.NumCPU()
+	eventQueue := make(chan *Event, len(state.Events))
+	var wg sync.WaitGroup
+
+	// Start worker goroutines
+	for range numWorkers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for event := range eventQueue {
+				state.handleEvent(event, false)
+			}
+		}()
 	}
 
-	// Handle current event
+	// Enqueue events
+	for i := range state.Events {
+		eventQueue <- &state.Events[i]
+	}
+	close(eventQueue)
+
+	wg.Wait()
+
+	// Handle current progress event (if there is one)
 	if eventName != "" {
 		eventValue, err := state.ProgressEventValue.Get()
 		if err != nil {
