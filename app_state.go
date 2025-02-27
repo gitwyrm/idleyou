@@ -330,9 +330,8 @@ func (a *AppState) Get(variable string) interface{} {
 	}
 }
 
-func NewAppState(ticksValue, workValue, workXP, foodValue, foodMaxValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, salary int, working bool, paused bool, routineShower bool, routineShave bool, routineBrushTeeth bool, routineBonus int, eventName string, eventValue int, eventMax int, choiceEventName string, choiceEventText string, choiceEventChoices []string) *AppState {
-	var appstate AppState
-	appstate = AppState{
+func NewAppState(ticksValue, workValue, workXP, foodValue, foodMaxValue, energyValue, energyMaxValue, moodValue, charismaValue, moneyValue, fitnessValue int, job string, salary int, working bool, paused bool, routineShower bool, routineShave bool, routineBrushTeeth bool, routineBonus int, eventName string, eventValue int, eventMax int, choiceEventName string, choiceEventText string, choiceEventChoices []string, messages []string, variables map[string]any) *AppState {
+	appstate := AppState{
 		Ticks:              binding.NewInt(),
 		Work:               binding.NewInt(),
 		WorkXP:             binding.NewInt(),
@@ -389,36 +388,40 @@ func NewAppState(ticksValue, workValue, workXP, foodValue, foodMaxValue, energyV
 	appstate.ChoiceEventText.Set(choiceEventText)
 	appstate.ChoiceEventChoices.Set(choiceEventChoices)
 	appstate.Events = GetEvents(&appstate)
+	appstate.Messages.Set(messages)
+	appstate.Variables.Set(variables)
 	return &appstate
 }
 
 func NewAppStateWithDefaults() *AppState {
 	return NewAppState(
-		0,          // ticksValue
-		0,          // workValue
-		0,          // workXP
-		200,        // foodValue
-		200,        // foodMaxValue
-		100,        // energyValue
-		100,        // energyMaxValue
-		50,         // moodValue
-		0,          // charismaValue
-		100,        // moneyValue
-		0,          // fitnessValue
-		"",         // job
-		0,          // salary
-		false,      // working
-		false,      // paused
-		true,       // routineShower
-		false,      // routineShave
-		true,       // routineBrushTeeth
-		0,          // routineBonus
-		"",         // eventName
-		0,          // eventValue
-		100,        // eventMax
-		"",         // choiceEventName
-		"",         // choiceEventText
-		[]string{}, // choiceEventChoices
+		0,                // ticksValue
+		0,                // workValue
+		0,                // workXP
+		200,              // foodValue
+		200,              // foodMaxValue
+		100,              // energyValue
+		100,              // energyMaxValue
+		50,               // moodValue
+		0,                // charismaValue
+		100,              // moneyValue
+		0,                // fitnessValue
+		"",               // job
+		0,                // salary
+		false,            // working
+		false,            // paused
+		true,             // routineShower
+		false,            // routineShave
+		true,             // routineBrushTeeth
+		0,                // routineBonus
+		"",               // eventName
+		0,                // eventValue
+		100,              // eventMax
+		"",               // choiceEventName
+		"",               // choiceEventText
+		[]string{},       // choiceEventChoices
+		[]string{},       // messages
+		map[string]any{}, // variables
 	)
 }
 
@@ -437,6 +440,8 @@ func fromJSON(jsonData string) *AppState {
 	energyMaxValue := data["energyMax"]
 	moodValue := data["mood"]
 	moneyValue := data["money"]
+	charismaValue := data["charisma"]
+	fitnessValue := data["fitness"]
 	job := data["job"]
 	salary := data["salary"]
 	working := data["working"]
@@ -445,14 +450,14 @@ func fromJSON(jsonData string) *AppState {
 	routineShave := data["routineShave"]
 	routineBrushTeeth := data["routineBrushTeeth"]
 	routineBonus := data["routineBonus"]
-	eventName := data["eventName"]
-	eventValue := data["eventValue"]
-	eventMax := data["eventMax"]
+	progressEventName := data["eventName"]
+	progressEventValue := data["eventValue"]
+	progressEventMax := data["eventMax"]
 	choiceEventName := data["choiceEventName"]
 	choiceEventText := data["choiceEventText"]
 	choiceEventChoices := data["choiceEventChoices"]
-	charismaValue := data["charisma"]
-	fitnessValue := data["fitness"]
+	messages := data["messages"]
+	variables := data["variables"]
 
 	return NewAppState(
 		ticksValue.(int),
@@ -463,8 +468,8 @@ func fromJSON(jsonData string) *AppState {
 		energyValue.(int),
 		energyMaxValue.(int),
 		moodValue.(int),
-		moneyValue.(int),
 		charismaValue.(int),
+		moneyValue.(int),
 		fitnessValue.(int),
 		job.(string),
 		salary.(int),
@@ -474,12 +479,14 @@ func fromJSON(jsonData string) *AppState {
 		routineShave.(bool),
 		routineBrushTeeth.(bool),
 		routineBonus.(int),
-		eventName.(string),
-		eventValue.(int),
-		eventMax.(int),
+		progressEventName.(string),
+		progressEventValue.(int),
+		progressEventMax.(int),
 		choiceEventName.(string),
 		choiceEventText.(string),
 		choiceEventChoices.([]string),
+		messages.([]string),
+		variables.(map[string]any),
 	)
 }
 
@@ -671,6 +678,10 @@ func (state *AppState) handleEvent(event *Event, ignoreCondition bool) {
 }
 
 func (state *AppState) toJSON() (string, error) {
+	ticksValue, err := state.Ticks.Get()
+	if err != nil {
+		return "", err
+	}
 	workValue, err := state.Work.Get()
 	if err != nil {
 		return "", err
@@ -680,6 +691,10 @@ func (state *AppState) toJSON() (string, error) {
 		return "", err
 	}
 	foodValue, err := state.Food.Get()
+	if err != nil {
+		return "", err
+	}
+	foodMax, err := state.FoodMax.Get()
 	if err != nil {
 		return "", err
 	}
@@ -699,7 +714,19 @@ func (state *AppState) toJSON() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	charismaValue, err := state.Charisma.Get()
+	if err != nil {
+		return "", err
+	}
+	fitnessValue, err := state.Fitness.Get()
+	if err != nil {
+		return "", err
+	}
 	job, err := state.Job.Get()
+	if err != nil {
+		return "", err
+	}
+	salary, err := state.Salary.Get()
 	if err != nil {
 		return "", err
 	}
@@ -707,31 +734,86 @@ func (state *AppState) toJSON() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	eventName, err := state.ProgressEventName.Get()
+	paused, err := state.Paused.Get()
 	if err != nil {
 		return "", err
 	}
-	eventValue, err := state.ProgressEventValue.Get()
+	routineShower, err := state.RoutineShower.Get()
 	if err != nil {
 		return "", err
 	}
-	eventMax, err := state.ProgressEventMax.Get()
+	routineShave, err := state.RoutineShave.Get()
+	if err != nil {
+		return "", err
+	}
+	routineBrushTeeth, err := state.RoutineBrushTeeth.Get()
+	if err != nil {
+		return "", err
+	}
+	routineBonus, err := state.RoutineBonus.Get()
+	if err != nil {
+		return "", err
+	}
+	progressEventName, err := state.ProgressEventName.Get()
+	if err != nil {
+		return "", err
+	}
+	progressEventValue, err := state.ProgressEventValue.Get()
+	if err != nil {
+		return "", err
+	}
+	progressEventMax, err := state.ProgressEventMax.Get()
+	if err != nil {
+		return "", err
+	}
+	choiceEventName, err := state.ChoiceEventName.Get()
+	if err != nil {
+		return "", err
+	}
+	choiceEventText, err := state.ChoiceEventText.Get()
+	if err != nil {
+		return "", err
+	}
+	choiceEventChoices, err := state.ChoiceEventChoices.Get()
+	if err != nil {
+		return "", err
+	}
+	messages, err := state.Messages.Get()
+	if err != nil {
+		return "", err
+	}
+	variables, err := state.Variables.Get()
 	if err != nil {
 		return "", err
 	}
 	jsonData, err := json.Marshal(map[string]any{
-		"work":       workValue,
-		"workXP":     workXP,
-		"food":       foodValue,
-		"energy":     energyValue,
-		"energyMax":  energyMax,
-		"mood":       moodValue,
-		"money":      moneyValue,
-		"job":        job,
-		"working":    working,
-		"eventName":  eventName,
-		"eventValue": eventValue,
-		"eventMax":   eventMax,
+		"ticks":              ticksValue,
+		"work":               workValue,
+		"workXP":             workXP,
+		"food":               foodValue,
+		"foodMax":            foodMax,
+		"energy":             energyValue,
+		"energyMax":          energyMax,
+		"mood":               moodValue,
+		"money":              moneyValue,
+		"charisma":           charismaValue,
+		"fitness":            fitnessValue,
+		"job":                job,
+		"salary":             salary,
+		"working":            working,
+		"paused":             paused,
+		"routineShower":      routineShower,
+		"routineShave":       routineShave,
+		"routineBrushTeeth":  routineBrushTeeth,
+		"routineBonus":       routineBonus,
+		"progressEventName":  progressEventName,
+		"progressEventValue": progressEventValue,
+		"progressEventMax":   progressEventMax,
+		"choiceEventName":    choiceEventName,
+		"choiceEventText":    choiceEventText,
+		"choiceEventChoices": choiceEventChoices,
+		"messages":           messages,
+		"variables":          variables,
 	})
 	if err != nil {
 		return "", err
