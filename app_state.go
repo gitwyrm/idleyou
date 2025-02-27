@@ -450,42 +450,56 @@ func fromJSON(jsonData string) *AppState {
 	routineShave := data["routineShave"]
 	routineBrushTeeth := data["routineBrushTeeth"]
 	routineBonus := data["routineBonus"]
-	progressEventName := data["eventName"]
-	progressEventValue := data["eventValue"]
-	progressEventMax := data["eventMax"]
+	progressEventName := data["progressEventName"]
+	progressEventValue := data["progressEventValue"]
+	progressEventMax := data["progressEventMax"]
 	choiceEventName := data["choiceEventName"]
 	choiceEventText := data["choiceEventText"]
-	choiceEventChoices := data["choiceEventChoices"]
-	messages := data["messages"]
+	rawChoiceEventChoices := data["choiceEventChoices"]
+	rawMessages := data["messages"]
 	variables := data["variables"]
 
+	if ticksValue == nil || workValue == nil || workXP == nil || foodValue == nil || foodMaxValue == nil || energyValue == nil || energyMaxValue == nil || moodValue == nil || moneyValue == nil || charismaValue == nil || fitnessValue == nil || job == nil || salary == nil || working == nil || paused == nil || routineShower == nil || routineShave == nil || routineBrushTeeth == nil || routineBonus == nil || progressEventName == nil || progressEventValue == nil || progressEventMax == nil || choiceEventName == nil || choiceEventText == nil || rawChoiceEventChoices == nil || rawMessages == nil || variables == nil {
+		log.Panic("Error parsing JSON data")
+	}
+
+	choiceEventChoices := make([]string, 0)
+	for _, choice := range rawChoiceEventChoices.([]interface{}) {
+		choiceEventChoices = append(choiceEventChoices, choice.(string))
+	}
+
+	messages := make([]string, 0)
+	for _, msg := range rawMessages.([]interface{}) {
+		messages = append(messages, msg.(string))
+	}
+
 	return NewAppState(
-		ticksValue.(int),
-		workValue.(int),
-		workXP.(int),
-		foodValue.(int),
-		foodMaxValue.(int),
-		energyValue.(int),
-		energyMaxValue.(int),
-		moodValue.(int),
-		charismaValue.(int),
-		moneyValue.(int),
-		fitnessValue.(int),
+		int(ticksValue.(float64)),
+		int(workValue.(float64)),
+		int(workXP.(float64)),
+		int(foodValue.(float64)),
+		int(foodMaxValue.(float64)),
+		int(energyValue.(float64)),
+		int(energyMaxValue.(float64)),
+		int(moodValue.(float64)),
+		int(charismaValue.(float64)),
+		int(moneyValue.(float64)),
+		int(fitnessValue.(float64)),
 		job.(string),
-		salary.(int),
+		int(salary.(float64)),
 		working.(bool),
 		paused.(bool),
 		routineShower.(bool),
 		routineShave.(bool),
 		routineBrushTeeth.(bool),
-		routineBonus.(int),
+		int(routineBonus.(float64)),
 		progressEventName.(string),
-		progressEventValue.(int),
-		progressEventMax.(int),
+		int(progressEventValue.(float64)),
+		int(progressEventMax.(float64)),
 		choiceEventName.(string),
 		choiceEventText.(string),
-		choiceEventChoices.([]string),
-		messages.([]string),
+		choiceEventChoices,
+		messages,
 		variables.(map[string]any),
 	)
 }
